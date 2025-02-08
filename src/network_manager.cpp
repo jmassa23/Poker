@@ -6,6 +6,9 @@ NetworkManager::~NetworkManager() {
     if(_socket != -1){
         close(_socket);
     }
+    for(int client_sock : _client_sockets){
+        close(client_sock);
+    }
 }
 
 bool NetworkManager::initialize_server() {
