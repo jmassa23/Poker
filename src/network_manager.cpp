@@ -79,7 +79,6 @@ int NetworkManager::accept_client() {
 }
 
 int NetworkManager::connect_to_server(const char* ip_address) {
-    int numbytes;
     struct addrinfo hints, *servinfo;
 
     memset(&hints, 0, sizeof hints);

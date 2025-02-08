@@ -1,8 +1,15 @@
 #pragma once
-#include "network_manager.h"
+
+#include <iostream>
+
+#include "../network_manager.h"
 
 class PokerServer {
 public:
+    PokerServer();
+    ~PokerServer();
+
+    void run();
 private:
     NetworkManager network;
 };

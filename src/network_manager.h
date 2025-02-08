@@ -27,12 +27,11 @@ public:
 
     // send message from server to all client sockets
     void broadcast(std::string message);
-
-    void bindAndListen();
     
+    int accept_client();
 
     // ----- CLIENT SIDE -----
-    int connectToServer();
+    int connect_to_server(const char* ip_address);
 
 
     // ----- COMMON FUNCTIONS -----
