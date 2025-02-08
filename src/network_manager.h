@@ -12,12 +12,37 @@
 #include <stdlib.h>       // exit()
 
 #include <vector>
+#include <string>
+
+#define PORT "7777"
 
 class NetworkManager {
 public:
-    bool initialize();
+    NetworkManager();
+    ~NetworkManager();
+
+    // ----- SERVER SIDE -----
+
+    bool initialize_server();
+
+    // send message from server to all client sockets
+    void broadcast(std::string message);
+
+    void bindAndListen();
     
+
+    // ----- CLIENT SIDE -----
+    int connectToServer();
+
+
+    // ----- COMMON FUNCTIONS -----
+
+    int get_port() const;
+    static int sendAll();
+
+    static int receiveAll();
+
 private:
-    int server_socket;
-    std::vector<int> client_sockets;
+    int _socket;
+    std::vector<int> _client_sockets;
 };
