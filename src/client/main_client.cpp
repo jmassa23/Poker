@@ -1,8 +1,8 @@
 #include "poker_client.h"
 
-int main(int argc, char* argv[]){
+int main([[maybe_unused]] int argc, char* argv[]){
     PokerClient client;
-    client.run(argv[1]);
-
-    std::cout << "There are " << argc << " arguments." << std::endl;
+    client.run(
+        (argc > 1) ? argv[1] : ""
+    );
 }

@@ -14,7 +14,7 @@ NetworkManager::~NetworkManager() {
 bool NetworkManager::initialize_server() {
     struct addrinfo hints, *servinfo;
 
-    memset(&hints, 0, sizeof hints);
+    memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE; // use my IP
@@ -50,7 +50,7 @@ bool NetworkManager::initialize_server() {
         break;
     }
 
-    freeaddrinfo(servinfo); // all done with this structure
+    freeaddrinfo(servinfo);
 
     if (p == NULL)  {
         fprintf(stderr, "server: failed to bind\n");
@@ -71,7 +71,7 @@ bool NetworkManager::initialize_server() {
 int NetworkManager::accept_client() {
     struct sockaddr *their_addr;
     socklen_t sin_size = sizeof(their_addr);
-    int new_socket = accept(_socket, (struct sockaddr *)&their_addr, &sin_size);
+    int new_socket = accept(_socket, their_addr, &sin_size);
     if (new_socket == -1) {
         perror("accept");
         return -1;
@@ -84,7 +84,7 @@ int NetworkManager::accept_client() {
 int NetworkManager::connect_to_server(const char* ip_address) {
     struct addrinfo hints, *servinfo;
 
-    memset(&hints, 0, sizeof hints);
+    memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
@@ -117,7 +117,7 @@ int NetworkManager::connect_to_server(const char* ip_address) {
         return -1;
     }
 
-    freeaddrinfo(servinfo); // all done with this structure
+    freeaddrinfo(servinfo);
 
     return _socket;
 }
