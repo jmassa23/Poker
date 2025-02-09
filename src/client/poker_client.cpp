@@ -11,7 +11,7 @@ void PokerClient::run(const char* ip_address) {
         return;
     }
 
-    std::cout << "You're connected to server. Waiting for all players to join.";
+    std::cout << "You're connected to server. Waiting for all players to join." << std::endl;
 
 
 

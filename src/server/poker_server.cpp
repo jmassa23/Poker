@@ -15,7 +15,7 @@ void PokerServer::run() {
     int num_players = 0;
     while(num_players < max_players){
         std::cout << "Waiting for " << max_players-num_players 
-                  << " more players.";
+                  << " more players." << std::endl;
 
         int new_client;
         if((new_client = network.accept_client()) == -1){
@@ -27,5 +27,5 @@ void PokerServer::run() {
         num_players++;
     }
 
-    std::cout << "All players connected. Starting game.";
+    std::cout << "All players connected. Starting game." << std::endl;
 }
