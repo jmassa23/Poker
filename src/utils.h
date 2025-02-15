@@ -42,8 +42,12 @@ enum class Suit {
 // ----- STRUCTS -----
 
 struct Card {
-    int rank; // value from 2 to 14 (Ace)
+    // value from 2 to 14 (Ace)
+    // can also be a 1 to represent a low ace when checking for the wheel (lowest straight)
+    int rank; 
     Suit suit;
+
+    Card(int _rank, Suit _suit) : rank(_rank), suit(_suit) {}
 
     void print_card() const {
         std::cout << rank;
@@ -87,5 +91,5 @@ struct GamePacket {
 struct PlayerDecision {
     int player_id;
     PlayerAction action;
-    int bet_size; // 0 for check or fold, >0 otherwise
+    int bet_size; // 0 for check or fold, greater than 0 otherwise
 };

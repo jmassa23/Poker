@@ -2,7 +2,8 @@
 
 #include <iostream>
 
-#include "../network_manager.h"
+#include "network_manager.h"
+#include "table.h"
 
 class PokerServer {
 public:

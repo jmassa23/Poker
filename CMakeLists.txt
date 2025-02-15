@@ -15,6 +15,8 @@ include_directories(${SRC_DIR})
 # Collect source files
 set(SRC_FILES 
     ${SRC_DIR}/network_manager.cpp
+    ${SRC_DIR}/table.cpp
+    ${SRC_DIR}/deck.cpp
 )
 
 set(CLIENT_FILES
