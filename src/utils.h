@@ -36,7 +36,8 @@ enum class Suit {
     SPADE,
     HEART,
     CLUB,
-    DIAMOND
+    DIAMOND,
+    INVALID
 };
 
 // ----- STRUCTS -----
@@ -48,6 +49,7 @@ struct Card {
     Suit suit;
 
     Card(int _rank, Suit _suit) : rank(_rank), suit(_suit) {}
+    Card() : rank(0), suit(Suit::INVALID) {}
 
     void print_card() const {
         std::cout << rank;

@@ -17,6 +17,7 @@ set(SRC_FILES
     ${SRC_DIR}/network_manager.cpp
     ${SRC_DIR}/table.cpp
     ${SRC_DIR}/deck.cpp
+    ${SRC_DIR}/player.cpp
 )
 
 set(CLIENT_FILES
