@@ -24,7 +24,7 @@ private:
     PlayerList build_players(const std::vector<int>& players, std::mt19937& generator);
     uint64_t generate_token(std::unordered_set<uint64_t>& unique_tokens
             , std::uniform_int_distribution<uint64_t>& dist
-            , const std::mt19937& generator) const;
+            , std::mt19937& generator) const;
 public:
     Table(const std::vector<int>& players);
 };

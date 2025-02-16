@@ -37,7 +37,7 @@ PlayerList Table::build_players(const std::vector<int>& players, std::mt19937& g
 
 uint64_t Table::generate_token(std::unordered_set<uint64_t>& unique_tokens
             , std::uniform_int_distribution<uint64_t>& dist
-            , const std::mt19937& generator) const 
+            , std::mt19937& generator) const 
 {
      // generate a unique token for each player at the table
      uint64_t token;
