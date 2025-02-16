@@ -121,3 +121,38 @@ int NetworkManager::connect_to_server(const char* ip_address) {
 
     return _socket;
 }
+
+bool NetworkManager::send_all(int socket, char *data, int len) {
+    int total_bytes_sent = 0;
+    int bytes_left = len;
+    int sent;
+
+    while(total_bytes_sent < len) {
+        sent = send(socket, data+total_bytes_sent, bytes_left, 0);
+
+        if (sent == -1) {
+            return false;
+        }
+
+        total_bytes_sent += sent;
+        bytes_left -= sent;
+    }
+
+    return true;
+} 
+
+bool NetworkManager::recv_all(int socket, void* buffer, int len) {
+    int total_bytes_received = 0;
+    int received;
+    
+    while (total_bytes_received < len) {
+        received = recv(socket, (char*)buffer + total_bytes_received, len - total_bytes_received, 0);
+
+        if (received <= 0) {
+            return false;
+        }
+
+        total_bytes_received += received;
+    }
+    return true;
+}

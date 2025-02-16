@@ -37,9 +37,8 @@ public:
     // ----- COMMON FUNCTIONS -----
 
     int get_port() const;
-    int send_all();
-
-    int recv_all();
+    bool send_all(int socket, char *data, int len);
+    bool recv_all(int socket, void* buffer, int len);
 
 private:
     int _socket;
