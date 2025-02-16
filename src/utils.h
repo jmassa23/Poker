@@ -7,6 +7,7 @@
 // ----- ENUMS -----
 
 enum class GameState {
+    SET_UP,
     PRE_FLOP,
     POST_FLOP,
     POST_TURN,

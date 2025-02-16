@@ -2,7 +2,7 @@
 
 Table::Table(const std::vector<int>& players) :
               deck(std::make_unique<Deck>())
-            , current_game_state(GameState::PRE_FLOP)
+            , current_game_state(GameState::SET_UP)
             , current_dealer(0)
 {
     // shuffle the players at the table
