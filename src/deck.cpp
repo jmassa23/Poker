@@ -15,7 +15,6 @@ Deck::Deck() : gen(std::random_device{}()) {
     }
 }
 
-
 void Deck::shuffle() {
     std::ranges::shuffle(deck, gen);
 }

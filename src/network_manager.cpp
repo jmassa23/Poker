@@ -81,6 +81,21 @@ int NetworkManager::accept_client() {
     return new_socket;
 }
 
+void NetworkManager::set_up_client_sockets(const std::vector<int>& sockets) {
+    _client_sockets = std::move(sockets);
+}
+
+std::vector<int> NetworkManager::get_client_sockets() const {
+    return _client_sockets;
+}
+
+bool NetworkManager::send_to_client(int socket, const GamePacket& game_packet) {
+
+}
+//bool receive_from_client(int socket, PlayerDecision& player_decision);
+
+// receive from client
+
 int NetworkManager::connect_to_server(const char* ip_address) {
     struct addrinfo hints, *servinfo;
 
@@ -144,7 +159,7 @@ bool NetworkManager::send_all(int socket, char *data, int len) {
 bool NetworkManager::recv_all(int socket, void* buffer, int len) {
     int total_bytes_received = 0;
     int received;
-    
+
     while (total_bytes_received < len) {
         received = recv(socket, (char*)buffer + total_bytes_received, len - total_bytes_received, 0);
 
@@ -156,3 +171,4 @@ bool NetworkManager::recv_all(int socket, void* buffer, int len) {
     }
     return true;
 }
+

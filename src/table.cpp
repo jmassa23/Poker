@@ -5,7 +5,7 @@ Table::Table(const std::vector<int>& players) :
             , current_game_state(GameState::SET_UP)
             , current_dealer(0)
 {
-    // shuffle the players at the table
+    // randomly sit the players at the table
     std::random_device rd;
     std::mt19937 generator(rd());
     

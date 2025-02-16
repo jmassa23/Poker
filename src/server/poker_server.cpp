@@ -33,8 +33,9 @@ void PokerServer::run() {
         num_players++;
     }
 
+    network.set_up_client_sockets(players);
     std::cout << "All players connected. Starting game." << std::endl;
 
     // create a table and start the game.
-    std::unique_ptr<Table> table = std::make_unique<Table>(players);
+    std::unique_ptr<Table> table = std::make_unique<Table>(network.get_client_sockets());
 }
