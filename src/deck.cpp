@@ -8,7 +8,7 @@ Deck::Deck() : gen(std::random_device{}()) {
     auto ranks = std::views::iota(2, 15);
 
     // Use ranges to generate the deck
-    for (auto suit : suits) {    
+    for (const auto& suit : suits) {    
         std::ranges::for_each(ranks, [&](int rank) {
             deck.emplace_back(rank, suit);
         });
