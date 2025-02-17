@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+// Enum for the GameState
+enum GameState {
+    SET_UP = 0;
+    PRE_FLOP = 1;
+    POST_FLOP = 2;
+    POST_TURN = 3;
+    POST_RIVER = 4;
+    POST_HAND = 5;
+}
+
+enum PlayerAction {
+    CHECK_CALL = 0;
+    RAISE = 1;
+    FOLD = 2;
+}
+
+enum Suit {
+    SPADE = 0;
+    HEART = 1;
+    CLUB = 2;
+    DIAMOND = 3;
+    INVALID = 4;
+}
+
+message Card {
+    int32 rank = 1;      // Card rank (2 to 14, Ace = 14)
+    Suit suit = 2;       // Card suit (SPADE, HEART, CLUB, DIAMOND, INVALID)
+}
+
+// Message for GamePacket (sent by the server to the client)
+message GamePacket {
+    repeated Card board = 1;      // The board (a vector of cards)
+    GameState game_state = 2;     // Current game state (e.g., PRE_FLOP, POST_RIVER)
+    int32 award_amount = 3;       // Award amount for the round
+    int32 player_id = 4;          // Player ID
+}
+
+// Message for PlayerDecision (sent by the client to the server)
+message PlayerDecision {
+    int32 player_id = 1;          // Player ID
+    PlayerAction action = 2;      // Player action (CHECK_CALL, RAISE, FOLD)
+    int32 bet_size = 3;           // Bet size (0 for check or fold, >0 for raise)
+}
+
+
+

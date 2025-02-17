@@ -6,6 +6,7 @@
 #include <ranges>
 
 #include "utils.h"
+#include "game_packet.pb.h"
 
 class Deck {
 private:

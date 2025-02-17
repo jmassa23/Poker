@@ -10,7 +10,9 @@ Deck::Deck() : gen(std::random_device{}()) {
     // Use ranges to generate the deck
     for (const auto& suit : suits) {    
         std::ranges::for_each(ranks, [&](int rank) {
-            deck.emplace_back(rank, suit);
+            deck.emplace_back();
+            deck.back().set_rank(rank);
+            deck.back().set_suit(suit);
         });
     }
 }

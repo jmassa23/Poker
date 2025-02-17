@@ -19,7 +19,7 @@ PlayerList Table::build_players(const std::vector<int>& players, std::mt19937& g
     // used for token generation
     std::unordered_set<uint64_t> unique_tokens;
     std::uniform_int_distribution<uint64_t> dist(1, UINT64_MAX);
-   
+
     int i=0;
     // for each player, generate a new token
     for(const auto& player_socket : players){

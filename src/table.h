@@ -10,6 +10,8 @@
 #include "utils.h"
 #include "deck.h"
 #include "player.h"
+#include "game_packet.pb.h"
+
 
 using PlayerList = std::vector<std::shared_ptr<Player>>;
 using SocketToPlayerMap = std::unordered_map<int, std::shared_ptr<Player>>;

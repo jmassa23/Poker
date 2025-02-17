@@ -86,11 +86,11 @@ void NetworkManager::set_up_client_sockets(const std::vector<int>& sockets) {
 }
 
 std::vector<int> NetworkManager::get_client_sockets() const {
-    return _client_sockets;
+    return this->_client_sockets;
 }
 
 bool NetworkManager::send_to_client(int socket, const GamePacket& game_packet) {
-
+    return false;
 }
 //bool receive_from_client(int socket, PlayerDecision& player_decision);
 
