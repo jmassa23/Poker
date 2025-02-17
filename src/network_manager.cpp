@@ -90,9 +90,44 @@ std::vector<int> NetworkManager::get_client_sockets() const {
 }
 
 bool NetworkManager::send_to_client(int socket, const GamePacket& game_packet) {
-    return false;
+    // first serialize the object
+    std::string buffer;
+    if(!game_packet.SerializeToString(&buffer)){
+        std::cerr << "Unable to serialize game packet.";
+        return false;
+    }
+
+    // then send the size of the data
+    uint64_t data_size = htonll(buffer.size());
+    char data_size_buffer[sizeof(data_size)];
+    memcpy(data_size_buffer, &data_size, sizeof(data_size));
+    if(!send_all(socket, data_size_buffer, sizeof(data_size))){
+        std::cerr << "Unable to send size of serialized data.";
+        return false;
+    }
+
+    // then send the object 
+    return send_all(socket, buffer.data(), buffer.size());
 }
-//bool receive_from_client(int socket, PlayerDecision& player_decision);
+
+bool NetworkManager::receive_from_client(int socket, PlayerDecision& player_decision) {
+    // receive the size of the object first
+    uint64_t data_size;
+    if(!recv_all(socket, (char*)&data_size, sizeof(data_size))) {
+        std::cerr << "Could not receive size of the PlayerDecision object size.";
+        return false;
+    }
+    data_size = ntohll(data_size);
+
+    // receive the object
+    std::vector<char> buffer(data_size);
+    if(!recv_all(socket, buffer.data(), data_size)){
+        std::cerr << "Could not receive PlayerDecision data.";
+        return false;
+    }
+
+    return player_decision.ParseFromArray(buffer.data(), data_size);
+}
 
 // receive from client
 
@@ -137,6 +172,47 @@ int NetworkManager::connect_to_server(const char* ip_address) {
     return _socket;
 }
 
+bool NetworkManager::send_to_server(int socket, const PlayerDecision& player_decision) {
+    // first serialize the object
+    std::string buffer;
+    if(!player_decision.SerializeToString(&buffer)){
+        std::cerr << "Unable to serialize PlayerDecision object.";
+        return false;
+    }
+
+    // then send the size of the data
+    uint64_t data_size = htonll(buffer.size());
+    char data_size_buffer[sizeof(data_size)];
+    memcpy(data_size_buffer, &data_size, sizeof(data_size));
+    if(!send_all(socket, data_size_buffer, sizeof(data_size))){
+        std::cerr << "Unable to send size of serialized PlayerDecision data.";
+        return false;
+    }
+
+    // then send the object 
+    return send_all(socket, buffer.data(), buffer.size());
+}
+
+bool NetworkManager::receive_from_server(int socket, GamePacket& game_packet) {
+    // receive the size of the object first
+    uint64_t data_size;
+    if(!recv_all(socket, (char*)&data_size, sizeof(data_size))) {
+        std::cerr << "Could not receive size of the GamePacket object size.";
+        return false;
+    }
+    data_size = ntohll(data_size);
+
+    // receive the object
+    std::vector<char> buffer(data_size);
+    if(!recv_all(socket, buffer.data(), data_size)){
+        std::cerr << "Could not receive GamePacket data.";
+        return false;
+    }
+
+    return game_packet.ParseFromArray(buffer.data(), data_size);
+}
+
+
 bool NetworkManager::send_all(int socket, char *data, int len) {
     int total_bytes_sent = 0;
     int bytes_left = len;
@@ -156,12 +232,12 @@ bool NetworkManager::send_all(int socket, char *data, int len) {
     return true;
 } 
 
-bool NetworkManager::recv_all(int socket, void* buffer, int len) {
+bool NetworkManager::recv_all(int socket, char* buffer, int len) {
     int total_bytes_received = 0;
     int received;
 
     while (total_bytes_received < len) {
-        received = recv(socket, (char*)buffer + total_bytes_received, len - total_bytes_received, 0);
+        received = recv(socket, buffer + total_bytes_received, len - total_bytes_received, 0);
 
         if (received <= 0) {
             return false;

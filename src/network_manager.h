@@ -46,8 +46,8 @@ public:
     // ----- COMMON FUNCTIONS -----
     
     int get_port() const; // TODO - do we need this ? 
-    static bool send_all(int socket, char *data, int len);
-    static bool recv_all(int socket, void* buffer, int len);
+    static bool send_all(int socket, char* data, int len);
+    static bool recv_all(int socket, char* buffer, int len);
 
 
 private:
