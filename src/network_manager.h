@@ -48,7 +48,8 @@ public:
     int get_port() const; // TODO - do we need this ? 
     static bool send_all(int socket, char* data, int len);
     static bool recv_all(int socket, char* buffer, int len);
-
+    static bool send_serialized_data(int socket, std::string& data);
+    static bool recv_serialized_data(int socket, std::string& buffer, uint64_t& data_size);
 
 private:
     int _socket;

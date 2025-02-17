@@ -97,32 +97,13 @@ bool NetworkManager::send_to_client(int socket, const GamePacket& game_packet) {
         return false;
     }
 
-    // then send the size of the data
-    uint64_t data_size = htonll(buffer.size());
-    char data_size_buffer[sizeof(data_size)];
-    memcpy(data_size_buffer, &data_size, sizeof(data_size));
-    if(!send_all(socket, data_size_buffer, sizeof(data_size))){
-        std::cerr << "Unable to send size of serialized data.";
-        return false;
-    }
-
-    // then send the object 
-    return send_all(socket, buffer.data(), buffer.size());
+   return send_serialized_data(socket, buffer);
 }
 
 bool NetworkManager::receive_from_client(int socket, PlayerDecision& player_decision) {
-    // receive the size of the object first
+    std::vector<char> buffer;
     uint64_t data_size;
-    if(!recv_all(socket, (char*)&data_size, sizeof(data_size))) {
-        std::cerr << "Could not receive size of the PlayerDecision object size.";
-        return false;
-    }
-    data_size = ntohll(data_size);
-
-    // receive the object
-    std::vector<char> buffer(data_size);
-    if(!recv_all(socket, buffer.data(), data_size)){
-        std::cerr << "Could not receive PlayerDecision data.";
+    if(!recv_serialized_data(socket, buffer, data_size)){
         return false;
     }
 
@@ -180,32 +161,14 @@ bool NetworkManager::send_to_server(int socket, const PlayerDecision& player_dec
         return false;
     }
 
-    // then send the size of the data
-    uint64_t data_size = htonll(buffer.size());
-    char data_size_buffer[sizeof(data_size)];
-    memcpy(data_size_buffer, &data_size, sizeof(data_size));
-    if(!send_all(socket, data_size_buffer, sizeof(data_size))){
-        std::cerr << "Unable to send size of serialized PlayerDecision data.";
-        return false;
-    }
-
     // then send the object 
-    return send_all(socket, buffer.data(), buffer.size());
+    return send_serialized_data(socket, buffer);
 }
 
 bool NetworkManager::receive_from_server(int socket, GamePacket& game_packet) {
-    // receive the size of the object first
+    std::vector<char> buffer;
     uint64_t data_size;
-    if(!recv_all(socket, (char*)&data_size, sizeof(data_size))) {
-        std::cerr << "Could not receive size of the GamePacket object size.";
-        return false;
-    }
-    data_size = ntohll(data_size);
-
-    // receive the object
-    std::vector<char> buffer(data_size);
-    if(!recv_all(socket, buffer.data(), data_size)){
-        std::cerr << "Could not receive GamePacket data.";
+    if(!recv_serialized_data(socket, buffer, data_size)) {
         return false;
     }
 
@@ -248,3 +211,34 @@ bool NetworkManager::recv_all(int socket, char* buffer, int len) {
     return true;
 }
 
+bool NetworkManager::send_serialized_data(int socket, std::string& data) {
+    // send the size of the data
+    uint64_t data_size = htonll(data.size());
+    char data_size_buffer[sizeof(data_size)];
+    memcpy(data_size_buffer, &data_size, sizeof(data_size));
+    if(!send_all(socket, data_size_buffer, sizeof(data_size))){
+        std::cerr << "Unable to send size of serialized PlayerDecision data.";
+        return false;
+    }
+
+    // then send the object 
+    return send_all(socket, data.data(), data.size());
+}
+
+bool NetworkManager::recv_serialized_data(int socket, std::vector<char>& buffer, uint64_t& data_size) {
+    // receive the size of the object first
+    if(!recv_all(socket, (char*)&data_size, sizeof(data_size))) {
+        std::cerr << "Could not receive size of the GamePacket object size.";
+        return false;
+    }
+    data_size = ntohll(data_size);
+
+    // receive the object
+    buffer = std::vector<char>(data_size);
+    if(!recv_all(socket, buffer.data(), data_size)){
+        std::cerr << "Could not receive GamePacket data.";
+        return false;
+    }
+
+    return true;
+}
