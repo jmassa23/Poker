@@ -23,6 +23,11 @@
 //     FOLD
 // };
 
+enum class DataTransferType {
+    SEND,
+    RECEIVE
+};
+
 enum class HandRank {
     HIGH_CARD, // value of 0
     PAIR,

@@ -13,6 +13,7 @@
 
 #include <vector>
 #include <string>
+#include <type_traits>
 
 #include "utils.h"
 #include "game_packet.pb.h"
@@ -46,10 +47,21 @@ public:
     // ----- COMMON FUNCTIONS -----
     
     int get_port() const; // TODO - do we need this ? 
-    static bool send_all(int socket, char* data, int len);
-    static bool recv_all(int socket, char* buffer, int len);
     static bool send_serialized_data(int socket, std::string& data);
     static bool recv_serialized_data(int socket, std::vector<char>& buffer, uint64_t& data_size);
+    static bool send_all(int socket, char* data, int len);
+    static bool recv_all(int socket, char* buffer, int len);
+
+    template <DataTransferType transferType>
+    static bool transfer_all_data(int socket, char* data, int len);
+
+    template <DataTransferType transferType>
+    typename std::enable_if<transferType == DataTransferType::SEND, int>::type
+    transfer_data(int socket, char* data, int len, int flags);
+
+    template <DataTransferType transferType>
+    static typename std::enable_if<transferType == DataTransferType::RECEIVE, int>::type
+    transfer_data(int socket, char* data, int len, int flags);
 
 private:
     int _socket;
