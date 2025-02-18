@@ -14,6 +14,9 @@
 #include <vector>
 #include <string>
 
+#include "utils.h"
+#include "game_packet.pb.h"
+
 #define PORT "7777"
 
 class NetworkManager {
@@ -24,22 +27,29 @@ public:
     // ----- SERVER SIDE -----
 
     bool initialize_server();
-
-    // send message from server to all client sockets
-    void broadcast(std::string message);
-    
     int accept_client();
+    void set_up_client_sockets(const std::vector<int>& sockets);
+    std::vector<int> get_client_sockets() const;
+    // send game updates from server to all client sockets
+    void broadcast(const GamePacket& game_packet);
+    static bool send_to_client(int socket, const GamePacket& game_packet);
+    static bool receive_from_client(int socket, PlayerDecision& player_decision);
+
 
     // ----- CLIENT SIDE -----
+
     int connect_to_server(const char* ip_address);
+    static bool send_to_server(int socket, const PlayerDecision& player_decision);
+    static bool receive_from_server(int socket, GamePacket& game_packet);
 
 
     // ----- COMMON FUNCTIONS -----
-
-    int get_port() const;
-    static int sendAll();
-
-    static int receiveAll();
+    
+    int get_port() const; // TODO - do we need this ? 
+    static bool send_all(int socket, char* data, int len);
+    static bool recv_all(int socket, char* buffer, int len);
+    static bool send_serialized_data(int socket, std::string& data);
+    static bool recv_serialized_data(int socket, std::string& buffer, uint64_t& data_size);
 
 private:
     int _socket;
