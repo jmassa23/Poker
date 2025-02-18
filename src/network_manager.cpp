@@ -89,6 +89,12 @@ std::vector<int> NetworkManager::get_client_sockets() const {
     return this->_client_sockets;
 }
 
+void NetworkManager::broadcast(const GamePacket& game_packet) {
+    std::ranges::for_each(_client_sockets, [&game_packet](int client_socket){
+        send_to_client(client_socket, game_packet);
+    });
+}
+
 bool NetworkManager::send_to_client(int socket, const GamePacket& game_packet) {
     // first serialize the object
     std::string buffer;

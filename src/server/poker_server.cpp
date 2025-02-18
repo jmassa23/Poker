@@ -38,4 +38,11 @@ void PokerServer::run() {
 
     // create a table and start the game.
     std::unique_ptr<Table> table = std::make_unique<Table>(network.get_client_sockets());
+
+    // run the game
+    while(true) {
+        GamePacket game_packet;
+        game_packet.set_game_state(GameState::SET_UP);
+        network.broadcast(game_packet);
+    }
 }
