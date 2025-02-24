@@ -29,4 +29,7 @@ private:
             , std::mt19937& generator) const;
 public:
     Table(const std::vector<int>& players);
+
+    void shuffle_deck();
+    void update_dealer();
 };

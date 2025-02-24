@@ -48,3 +48,12 @@ uint64_t Table::generate_token(std::unordered_set<uint64_t>& unique_tokens
      unique_tokens.insert(token);
      return token;
 }
+
+void Table::shuffle_deck() {
+    deck->shuffle();
+}
+
+void Table::update_dealer() {
+    int n = players_at_table.size();
+    current_dealer = (current_dealer + 1) % n;
+}

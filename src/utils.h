@@ -81,7 +81,7 @@ enum class HandRank {
 //     }
 // };
 
-struct PokerHand {
+struct HandTieBreakInfo {
     std::vector<Card> indifferent_cards;
     std::pair<int, int> pair_ranks;
     HandRank hand_rank;

@@ -2,7 +2,7 @@
 
 Deck::Deck() : gen(std::random_device{}()) {
     // build the deck
-    deck.reserve(52);
+    deck.reserve(DECK_SIZE);
 
     std::vector<Suit> suits = {Suit::SPADE, Suit::HEART, Suit::CLUB, Suit::DIAMOND};
     auto ranks = std::views::iota(2, 15);

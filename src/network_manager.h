@@ -32,7 +32,7 @@ public:
     void set_up_client_sockets(const std::vector<int>& sockets);
     std::vector<int> get_client_sockets() const;
     // send game updates from server to all client sockets
-    void broadcast(const GamePacket& game_packet);
+    void broadcast(const GamePacket& game_packet) const;
     static bool send_to_client(int socket, const GamePacket& game_packet);
     static bool receive_from_client(int socket, PlayerDecision& player_decision);
 
@@ -56,7 +56,7 @@ public:
     static bool transfer_all_data(int socket, char* data, int len);
 
     template <DataTransferType transferType>
-    typename std::enable_if<transferType == DataTransferType::SEND, int>::type
+    static typename std::enable_if<transferType == DataTransferType::SEND, int>::type
     transfer_data(int socket, char* data, int len, int flags);
 
     template <DataTransferType transferType>
