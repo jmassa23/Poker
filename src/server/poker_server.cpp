@@ -36,6 +36,56 @@ void PokerServer::run() {
     network.set_up_client_sockets(players);
     std::cout << "All players connected. Starting game." << std::endl;
 
-    // create a table and start the game.
-    std::unique_ptr<Table> table = std::make_unique<Table>(network.get_client_sockets());
+    // start the game.
+    play_game();
+}
+
+void PokerServer::play_game() const {
+    // Create a table and run the game
+    PokerTable table = std::make_unique<Table>(network.get_client_sockets());
+
+    GamePacket game_packet;
+    send_game_start_message(game_packet);
+    
+    // run the game
+    while(true) {
+        print_game_info(table);
+        table->shuffle_deck();
+
+        table->update_dealer();
+    }
+}
+
+void PokerServer::send_game_start_message(GamePacket& game_packet) const {
+    game_packet.set_game_state(GameState::SET_UP);
+    Card* card1 = game_packet.add_board();
+    card1->set_rank(14);
+    card1->set_suit(Suit::SPADE);
+
+    Card* card2 = game_packet.add_board();
+    card2->set_rank(13);
+    card2->set_suit(Suit::DIAMOND);
+
+    Card* card3 = game_packet.add_board();
+    card3->set_rank(10);
+    card3->set_suit(Suit::HEART);
+
+    Card* card4 = game_packet.add_board();
+    card4->set_rank(9);
+    card4->set_suit(Suit::CLUB);
+
+    Card* card5 = game_packet.add_board();
+    card5->set_rank(11);
+    card5->set_suit(Suit::HEART);
+
+    network.broadcast(game_packet);
+}
+
+void PokerServer::print_game_info(const PokerTable& table) const {
+    // print stats about all players at the table including 
+    // player's name, stack size, buy in, hands won (?)
+
+    // print the players in the hand inthe order they will act
+    // note who the dealer is
+    // print the board if cards have been dealt
 }

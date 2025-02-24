@@ -8,6 +8,8 @@
 #include "utils.h"
 #include "game_packet.pb.h"
 
+static const uint16_t DECK_SIZE = 52;
+
 class Deck {
 private:
     std::vector<Card> deck;

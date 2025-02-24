@@ -89,6 +89,12 @@ std::vector<int> NetworkManager::get_client_sockets() const {
     return this->_client_sockets;
 }
 
+void NetworkManager::broadcast(const GamePacket& game_packet) const {
+    std::ranges::for_each(_client_sockets, [&game_packet](int client_socket){
+        send_to_client(client_socket, game_packet);
+    });
+}
+
 bool NetworkManager::send_to_client(int socket, const GamePacket& game_packet) {
     // first serialize the object
     std::string buffer;
@@ -175,38 +181,39 @@ bool NetworkManager::receive_from_server(int socket, GamePacket& game_packet) {
     return game_packet.ParseFromArray(buffer.data(), data_size);
 }
 
-
 bool NetworkManager::send_all(int socket, char *data, int len) {
-    int total_bytes_sent = 0;
-    int bytes_left = len;
-    int sent;
-
-    while(total_bytes_sent < len) {
-        sent = send(socket, data+total_bytes_sent, bytes_left, 0);
-
-        if (sent == -1) {
-            return false;
-        }
-
-        total_bytes_sent += sent;
-        bytes_left -= sent;
-    }
-
-    return true;
-} 
+    return transfer_all_data<DataTransferType::SEND>(socket, data, len);
+}
 
 bool NetworkManager::recv_all(int socket, char* buffer, int len) {
-    int total_bytes_received = 0;
-    int received;
+    return transfer_all_data<DataTransferType::RECEIVE>(socket, buffer, len);
+}
 
-    while (total_bytes_received < len) {
-        received = recv(socket, buffer + total_bytes_received, len - total_bytes_received, 0);
+template <DataTransferType transferType>
+typename std::enable_if<transferType == DataTransferType::SEND, int>::type
+NetworkManager::transfer_data(int socket, char* data, int len, int flags) {
+    return send(socket, data, len, flags);
+}
 
-        if (received <= 0) {
+template <DataTransferType transferType>
+typename std::enable_if<transferType == DataTransferType::RECEIVE, int>::type
+NetworkManager::transfer_data(int socket, char* data, int len, int flags) {
+    return recv(socket, data, len, flags);
+}
+
+template <DataTransferType transferType>
+bool NetworkManager::transfer_all_data(int socket, char* buffer, int len) {
+    int total_bytes_transferred = 0;
+    int transferred;
+
+    while (total_bytes_transferred < len) {
+        transferred = transfer_data<transferType>(socket, buffer + total_bytes_transferred, len - total_bytes_transferred, 0);
+
+        if (transferred == -1) {
             return false;
         }
 
-        total_bytes_received += received;
+        total_bytes_transferred += transferred;
     }
     return true;
 }
