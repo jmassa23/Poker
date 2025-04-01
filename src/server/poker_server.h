@@ -12,9 +12,9 @@ public:
     ~PokerServer();
 
     void run();
-    void play_game() const;
+    void play_game(const std::vector<int>& client_sockets) const;
     void play_hand() const;
-    void send_game_start_message(GamePacket& game_packet) const;
+    void create_game_start_message(GamePacket& game_packet) const;
     void print_game_info(const PokerTable& table) const;
 
 private:

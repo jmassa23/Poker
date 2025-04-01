@@ -10,6 +10,8 @@ Table::Table(const std::vector<int>& players) :
     std::mt19937 generator(rd());
     
     players_at_table = build_players(players, generator);
+
+    player_sockets = std::move(players);
 }
 
 PlayerList Table::build_players(const std::vector<int>& players, std::mt19937& generator) {
@@ -31,7 +33,6 @@ PlayerList Table::build_players(const std::vector<int>& players, std::mt19937& g
     }
 
     std::ranges::shuffle(built_list, generator);
-
     return std::move(built_list);
 }
 
@@ -39,14 +40,14 @@ uint64_t Table::generate_token(std::unordered_set<uint64_t>& unique_tokens
             , std::uniform_int_distribution<uint64_t>& dist
             , std::mt19937& generator) const 
 {
-     // generate a unique token for each player at the table
-     uint64_t token;
-     do {
-         token = dist(generator);
-     } while (unique_tokens.count(token)); // ensure each token is unique
+    // generate a unique token for each player at the table
+    uint64_t token;
+    do {
+        token = dist(generator);
+    } while (unique_tokens.count(token)); // ensure each token is unique
 
-     unique_tokens.insert(token);
-     return token;
+    unique_tokens.insert(token);
+    return token;
 }
 
 void Table::shuffle_deck() {
@@ -56,4 +57,8 @@ void Table::shuffle_deck() {
 void Table::update_dealer() {
     int n = players_at_table.size();
     current_dealer = (current_dealer + 1) % n;
+}
+
+void Table::broadcast_to_players(const GamePacket& game_packet) const {
+    NetworkManager::broadcast(game_packet, player_sockets);
 }

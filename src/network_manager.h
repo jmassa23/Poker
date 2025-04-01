@@ -29,10 +29,10 @@ public:
 
     bool initialize_server();
     int accept_client();
-    void set_up_client_sockets(const std::vector<int>& sockets);
-    std::vector<int> get_client_sockets() const;
+    // TODO - void set_up_client_sockets(const std::vector<int>& sockets);
+    // std::vector<int> get_client_sockets() const;
     // send game updates from server to all client sockets
-    void broadcast(const GamePacket& game_packet) const;
+    static void broadcast(const GamePacket& game_packet, const std::vector<int>& client_sockets);
     static bool send_to_client(int socket, const GamePacket& game_packet);
     static bool receive_from_client(int socket, PlayerDecision& player_decision);
 

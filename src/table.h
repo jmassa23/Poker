@@ -11,6 +11,7 @@
 #include "deck.h"
 #include "player.h"
 #include "game_packet.pb.h"
+#include "network_manager.h"
 
 
 using PlayerList = std::vector<std::shared_ptr<Player>>;
@@ -19,6 +20,7 @@ class Table {
 private:
     PlayerList players_at_table;
     SocketToPlayerMap socket_to_player;
+    std::vector<int> player_sockets;
     GameState current_game_state;
     int current_dealer;
     std::unique_ptr<Deck> deck;
@@ -32,4 +34,6 @@ public:
 
     void shuffle_deck();
     void update_dealer();
+
+    void broadcast_to_players(const GamePacket& game_packet) const;
 };
