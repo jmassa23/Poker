@@ -81,13 +81,14 @@ int NetworkManager::accept_client() {
     return new_socket;
 }
 
-void NetworkManager::set_up_client_sockets(const std::vector<int>& sockets) {
-    _client_sockets = std::move(sockets);
-}
+// TODO 
+// void NetworkManager::set_up_client_sockets(const std::vector<int>& sockets) {
+//     _client_sockets = std::move(sockets);
+// }
 
-std::vector<int> NetworkManager::get_client_sockets() const {
-    return this->_client_sockets;
-}
+// std::vector<int> NetworkManager::get_client_sockets() const {
+//     return this->_client_sockets;
+// }
 
 void NetworkManager::broadcast(const GamePacket& game_packet, const std::vector<int>& client_sockets) {
     std::ranges::for_each(client_sockets, [&game_packet](int client_socket){

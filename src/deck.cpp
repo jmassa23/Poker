@@ -20,3 +20,7 @@ Deck::Deck() : gen(std::random_device{}()) {
 void Deck::shuffle() {
     std::ranges::shuffle(deck, gen);
 }
+
+Card Deck::get_card(int index) {
+    return deck[index];
+}

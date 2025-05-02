@@ -17,4 +17,6 @@ private:
 public:
     Deck();
     void shuffle();
+
+    Card get_card(int index);
 };

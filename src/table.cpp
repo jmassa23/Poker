@@ -36,6 +36,22 @@ PlayerList Table::build_players(const std::vector<int>& players, std::mt19937& g
     return std::move(built_list);
 }
 
+void Table::deal_hand(int& deck_idx) {
+    int num_players = players_at_table.size();
+
+    // deal first card
+    for(int offset = 1; offset <= num_players; ++offset) {
+        int player_id = (current_dealer + offset) % num_players;
+        players_at_table[player_id]->deal_card(deck->get_card(deck_idx++), false);
+    }
+
+    // deal second card
+    for(int offset = 1; offset <= num_players; ++offset) {
+        int player_id = (current_dealer + offset) % num_players;
+        players_at_table[player_id]->deal_card(deck->get_card(deck_idx++), true);
+    }
+}
+
 uint64_t Table::generate_token(std::unordered_set<uint64_t>& unique_tokens
             , std::uniform_int_distribution<uint64_t>& dist
             , std::mt19937& generator) const 
@@ -52,6 +68,33 @@ uint64_t Table::generate_token(std::unordered_set<uint64_t>& unique_tokens
 
 void Table::shuffle_deck() {
     deck->shuffle();
+}
+
+void Table::play_hand() {
+    // TODO  - allow stack sizes of 0 to buy back in 
+            // handle players who are excluded bc they have a stack size of 0
+    int num_players = players_at_table.size();
+
+    int pot_size = 0; // in big blinds
+    int deck_idx = 0;
+    std::unordered_set<int> excluded_players; // players no longer in the hand
+
+    int current_player_action = current_dealer;
+    deal_hand(deck_idx);
+    take_blinds(current_player_action, excluded_players);
+    
+}
+
+void Table::take_blinds(int& player_idx, std::unordered_set<int>& excluded_players) {
+    update_player_idx(player_idx, excluded_players);
+    players_at_table[player_idx]->take_small_blind();
+    update_player_idx(player_idx, excluded_players);
+    players_at_table[player_idx]->take_big_blind();
+    update_player_idx(player_idx, excluded_players);
+}
+
+void Table::update_player_idx(int& player_idx, std::unordered_set<int>& excluded_players) {
+    while(!excluded_players.contains(player_idx++)) {}
 }
 
 void Table::update_dealer() {

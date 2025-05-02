@@ -46,12 +46,12 @@ void PokerServer::play_game(const std::vector<int>& client_sockets) const {
     GamePacket game_packet;
     create_game_start_message(game_packet);
     table->broadcast_to_players(game_packet);
-        
+    
     // run the game
     while(true) {
         print_game_info(table);
         table->shuffle_deck();
-
+        table->play_hand();
         table->update_dealer();
     }
 }

@@ -17,4 +17,9 @@ private:
     int total_buy_in;
 public:
     Player(string _player_name, int _player_id, int _buy_in);
+
+    // modifiers by table on player
+    void take_big_blind();
+    void take_small_blind();
+    void deal_card(const Card& card, bool has_card);
 };
