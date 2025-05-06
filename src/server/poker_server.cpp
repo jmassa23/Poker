@@ -51,6 +51,8 @@ void PokerServer::play_game(const std::vector<int>& client_sockets) const {
     while(true) {
         print_game_info(table);
         table->shuffle_deck();
+        // TODO - play_hand should return which player(s) won the hand
+        // and print this message to all players
         table->play_hand();
         table->update_dealer();
     }

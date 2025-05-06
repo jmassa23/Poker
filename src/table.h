@@ -13,6 +13,7 @@
 #include "game_packet.pb.h"
 #include "network_manager.h"
 
+const int BOARD_SIZE = 5;
 
 using PlayerList = std::vector<std::shared_ptr<Player>>;
 using SocketToPlayerMap = std::unordered_map<int, std::shared_ptr<Player>>;
@@ -31,11 +32,10 @@ private:
             , std::mt19937& generator) const;
 
     // game function helpers
-    void deal_hand(int& deck_idx);
-    // deal_pre_flop
-    // deal_flop
-    // deal_turn
-    // deal_river
+    void deal_hands(int& deck_idx);
+    void deal_community_card(int& deck_idx, std::vector<Card>& community_cards);
+    void deal_flop(int& deck_idx, std::vector<Card>& community_cards);
+    void deal_turn_or_river(int& deck_idx, std::vector<Card>& community_cards);
     // handle_betting_action (bool is_pre_flop)
     // decide_winners
     // build_five_card_hand
