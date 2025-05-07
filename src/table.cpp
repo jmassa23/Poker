@@ -84,9 +84,9 @@ void Table::play_hand() {
     take_blinds(current_player_action, excluded_players);
 
     std::vector<Card> community_cards;
-    community_cards.reserve(BOARD_SIZE);
+    community_cards.reserve(MAX_NUMBER_OF_COMMUNITY_CARDS);
 
-    int winner = -1; // indicates which player won the hand
+    int winner = -1; // indicates which player won the hand, if decided by betting.
 
     // handle pre flop betting action then deal flop and reset player action
     if(winner = handle_betting_action(true, excluded_players, current_player_action, pot_size, deck_idx) > -1) {
@@ -110,9 +110,16 @@ void Table::play_hand() {
     deal_turn_or_river(deck_idx, community_cards);
 
     // handle post river action
+    if(winner = handle_betting_action(false, excluded_players, current_player_action, pot_size, deck_idx) > -1) {
+        award_chips_to_winner(winner, pot_size);
+        return;
+    }
 
-    // decide winner
+    // decide winner (contains multiple if a draw)
+    std::vector<int> winners = decide_winners(excluded_players, community_cards);
+
     // award winner chips
+    award_chips_to_winners(winners, pot_size);
 }
 
 void Table::deal_community_card(int& deck_idx, std::vector<Card>& community_cards) {

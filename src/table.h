@@ -13,7 +13,7 @@
 #include "game_packet.pb.h"
 #include "network_manager.h"
 
-const int BOARD_SIZE = 5;
+static const uint16_t MAX_NUMBER_OF_COMMUNITY_CARDS = 5;
 
 using PlayerList = std::vector<std::shared_ptr<Player>>;
 using SocketToPlayerMap = std::unordered_map<int, std::shared_ptr<Player>>;
@@ -36,10 +36,11 @@ private:
     void deal_community_card(int& deck_idx, std::vector<Card>& community_cards);
     void deal_flop(int& deck_idx, std::vector<Card>& community_cards);
     void deal_turn_or_river(int& deck_idx, std::vector<Card>& community_cards);
-    // handle_betting_action (bool is_pre_flop)
-    // decide_winners
+    bool handle_betting_action (bool is_pre_flop, std::unordered_set<int>& excluded_players, int& current_player_action, int& pot_size, int& deck_idx);
+    std::vector<int> decide_winners(std::unordered_set<int>& excluded_players, std::vector<Card>& community_cards);
     // build_five_card_hand
-    // award_chips(vector<int> winners, int amount)
+    void award_chips_to_winner(int winners, int amount);
+    void award_chips_to_winners(std::vector<int>& winners, int amount);
     // reset
     // print_decision
     void update_player_idx(int& player_idx, std::unordered_set<int>& excluded_players);
