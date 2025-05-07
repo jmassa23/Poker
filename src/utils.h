@@ -40,6 +40,11 @@ enum class HandRank {
     STRAIGHT_FLUSH // value of 8
 };
 
+inline HandRank& operator--(HandRank& hand_rank) {
+    hand_rank = static_cast<HandRank>(static_cast<int>(hand_rank) - 1);
+    return hand_rank;
+}
+
 // enum class Suit {
 //     SPADE,
 //     HEART,
