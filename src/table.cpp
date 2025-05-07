@@ -157,9 +157,23 @@ int Table::handle_betting_action(bool is_pre_flop, std::unordered_set<int>& excl
 }
 
 std::vector<int> Table::decide_winners(const std::vector<int>& remaining_players, const std::vector<Card>& community_cards) {
-    
-    
-    return {};
+    int num_players = remaining_players.size();
+    std::unordered_map<int, HandTieBreakInfo> hand_strengths(num_players);
+    HandRank max_rank = HandRank::HIGH_CARD;
+    for(int i=0; i<num_players; ++i){
+        int player_idx = remaining_players[i];
+        hand_strengths[player_idx] = determine_hand_strength(player_idx, community_cards);
+        if(hand_strengths[i].hand_rank > max_rank) {
+            max_rank = hand_strengths[i].hand_rank;
+        }
+    }
+
+    std::vector<int> winners;
+    for(auto& [player_idx, handInfo] : hand_strengths) {
+        winners.push_back(player_idx);
+    }
+
+    return winners;
 }
     
 void Table::award_chips_to_winner(int winner, int amount) {
@@ -178,6 +192,15 @@ void Table::award_chips_to_winners(const std::vector<int>& winners, int amount) 
         }
     }
 }
+
+// TODO - add optimization to check for the strongest hand we've seen so far
+// return a hand strength of -1 when our upper bound hand strength goes below current max
+HandTieBreakInfo determine_hand_strength(int player_idx, const std::vector<Card>& community_cards) {
+    HandTieBreakInfo temp;
+    return temp;
+}
+
+std::vector<int> build_five_card_hand(int player_idx, const std::vector<Card>& community_cards);
 
 void Table::update_player_idx(int& player_idx, std::unordered_set<int>& excluded_players) {
     while(!excluded_players.contains(player_idx++)) {}
