@@ -46,8 +46,9 @@ private:
     void award_chips_to_winners(const std::vector<int>& winners, int amount);
 
     // deciding winner helpers
-    HandTieBreakInfo determine_hand_strength(int player_idx, const std::vector<Card>& community_cards);
+    HandTieBreakInfo get_hand_strength(int player_idx, const std::vector<Card>& community_cards);
     std::vector<Card> build_combined_hand(int player_idx, const std::vector<Card>& community_cards);
+    void determine_hand_strength(const std::vector<Card>& combined_cards, HandTieBreakInfo& hand_info);
     
     // reset
     // print_decision

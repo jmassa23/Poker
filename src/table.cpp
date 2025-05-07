@@ -162,15 +162,15 @@ std::vector<int> Table::decide_winners(const std::vector<int>& remaining_players
     HandRank max_rank = HandRank::HIGH_CARD;
     for(int i=0; i<num_players; ++i){
         int player_idx = remaining_players[i];
-        hand_strengths[player_idx] = determine_hand_strength(player_idx, community_cards);
+        hand_strengths[player_idx] = get_hand_strength(player_idx, community_cards);
         if(hand_strengths[i].hand_rank > max_rank) {
             max_rank = hand_strengths[i].hand_rank;
         }
     }
 
     std::vector<int> winners;
-    for(auto& [player_idx, handInfo] : hand_strengths) {
-        if(handInfo.hand_rank == max_rank) {
+    for(auto& [player_idx, hand_info] : hand_strengths) {
+        if(hand_info.hand_rank == max_rank) {
             winners.push_back(player_idx);
         }   
     }
@@ -197,11 +197,12 @@ void Table::award_chips_to_winners(const std::vector<int>& winners, int amount) 
 
 // TODO - add optimization to check for the strongest hand we've seen so far
 // return a hand strength of -1 when our upper bound hand strength goes below current max
-HandTieBreakInfo Table::determine_hand_strength(int player_idx, const std::vector<Card>& community_cards) {
+HandTieBreakInfo Table::get_hand_strength(int player_idx, const std::vector<Card>& community_cards) {
     // create combined hand
     std::vector<Card> combined_hand = build_combined_hand(player_idx, community_cards);
 
     HandTieBreakInfo result;
+    determine_hand_strength(combined_hand, result);
     return result;
 }
 
@@ -228,6 +229,43 @@ std::vector<Card> Table::build_combined_hand(int player_idx, const std::vector<C
     }
 
     return combined_hand;
+}
+
+void Table::determine_hand_strength(const std::vector<Card>& combined_cards, HandTieBreakInfo& hand_info) {
+    // will serve as lower bound for hank rank
+    hand_info.hand_rank = HandRank::HIGH_CARD;
+    HandRank upper_bound_hand_rank = HandRank::STRAIGHT_FLUSH;
+
+
+    while(upper_bound_hand_rank > hand_info.hand_rank) {
+        
+        --upper_bound_hand_rank;
+    }
+
+    // depending on the rank of hand we have, store needed info about the five card hand
+    get_additional_five_card_hand_data(combined_cards, hand_info);
+}
+
+void Table::get_additional_five_card_hand_data(const std::vector<Card>& combined_cards, HandTieBreakInfo& hand_info) {
+    if(hand_info.hand_rank == HandRank::HIGH_CARD) {
+        fill_n_highest_cards(combined_cards, hand_info, 5);
+    }
+    else if(hand_info.hand_rank == HandRank::PAIR) {
+        fill_n_highest_cards(combined_cards, hand_info, 3);
+    }
+    else if(hand_info.hand_rank == HandRank::TRIPS) {
+        fill_n_highest_cards(combined_cards, hand_info, 2);
+    }
+    else if(hand_info.hand_rank == HandRank::TWO_PAIR || hand_info.hand_rank == HandRank::QUADS) {
+        fill_n_highest_cards(combined_cards, hand_info, 1);
+    }
+}
+
+void Table::fill_n_highest_cards(const std::vector<Card>& combined_cards, HandTieBreakInfo& hand_info, int n) {
+    hand_info.indifferent_cards.reserve(n);
+    for(int i=0; i<n; ++i) {
+        hand_info.indifferent_cards.push_back(combined_cards[i]);
+    }
 }
 
 void Table::update_player_idx(int& player_idx, std::unordered_set<int>& excluded_players) {
