@@ -32,19 +32,28 @@ private:
             , std::mt19937& generator) const;
 
     // game function helpers
+
+    // dealing community cards 
     void deal_hands(int& deck_idx);
     void deal_community_card(int& deck_idx, std::vector<Card>& community_cards);
     void deal_flop(int& deck_idx, std::vector<Card>& community_cards);
     void deal_turn_or_river(int& deck_idx, std::vector<Card>& community_cards);
-    bool handle_betting_action (bool is_pre_flop, std::unordered_set<int>& excluded_players, int& current_player_action, int& pot_size, int& deck_idx);
+    
+    // helpers for each key point in a hand
+    int handle_betting_action(bool is_pre_flop, std::unordered_set<int>& excluded_players, int& current_player_action, int& pot_size, int& deck_idx);
     std::vector<int> decide_winners(std::unordered_set<int>& excluded_players, std::vector<Card>& community_cards);
-    // build_five_card_hand
-    void award_chips_to_winner(int winners, int amount);
-    void award_chips_to_winners(std::vector<int>& winners, int amount);
+    void award_chips_to_winner(int winner, int amount);
+    void award_chips_to_winners(const std::vector<int>& winners, int amount);
+
+    // deciding winner helpers
+    HandTieBreakInfo determine_hand_strength(int player_id);
+    std::vector<int> build_five_card_hand(int player_id);
+    
     // reset
     // print_decision
     void update_player_idx(int& player_idx, std::unordered_set<int>& excluded_players);
     void take_blinds(int& player_idx, std::unordered_set<int>& excluded_players);
+
 public:
     Table(const std::vector<int>& players);
 

@@ -36,22 +36,6 @@ PlayerList Table::build_players(const std::vector<int>& players, std::mt19937& g
     return std::move(built_list);
 }
 
-void Table::deal_hands(int& deck_idx) {
-    int num_players = players_at_table.size();
-
-    // deal first card
-    for(int offset = 1; offset <= num_players; ++offset) {
-        int player_id = (current_dealer + offset) % num_players;
-        players_at_table[player_id]->deal_card(deck->get_card(deck_idx++), false);
-    }
-
-    // deal second card
-    for(int offset = 1; offset <= num_players; ++offset) {
-        int player_id = (current_dealer + offset) % num_players;
-        players_at_table[player_id]->deal_card(deck->get_card(deck_idx++), true);
-    }
-}
-
 uint64_t Table::generate_token(std::unordered_set<uint64_t>& unique_tokens
             , std::uniform_int_distribution<uint64_t>& dist
             , std::mt19937& generator) const 
@@ -60,7 +44,7 @@ uint64_t Table::generate_token(std::unordered_set<uint64_t>& unique_tokens
     uint64_t token;
     do {
         token = dist(generator);
-    } while (unique_tokens.count(token)); // ensure each token is unique
+    } while (unique_tokens.contains(token)); // ensure each token is unique
 
     unique_tokens.insert(token);
     return token;
@@ -89,28 +73,28 @@ void Table::play_hand() {
     int winner = -1; // indicates which player won the hand, if decided by betting.
 
     // handle pre flop betting action then deal flop and reset player action
-    if(winner = handle_betting_action(true, excluded_players, current_player_action, pot_size, deck_idx) > -1) {
+    if((winner = handle_betting_action(true, excluded_players, current_player_action, pot_size, deck_idx)) > -1) {
         award_chips_to_winner(winner, pot_size);
         return;
     }
     deal_flop(deck_idx, community_cards);
 
     // handle post flop betting action then deal turn
-    if(winner = handle_betting_action(false, excluded_players, current_player_action, pot_size, deck_idx) > -1) {
+    if((winner = handle_betting_action(false, excluded_players, current_player_action, pot_size, deck_idx)) > -1) {
         award_chips_to_winner(winner, pot_size);
         return;
     }
     deal_turn_or_river(deck_idx, community_cards);
 
     // handle post turn betting action then deal river
-    if(winner = handle_betting_action(false, excluded_players, current_player_action, pot_size, deck_idx) > -1) {
+    if((winner = handle_betting_action(false, excluded_players, current_player_action, pot_size, deck_idx)) > -1) {
         award_chips_to_winner(winner, pot_size);
         return;
     }
     deal_turn_or_river(deck_idx, community_cards);
 
     // handle post river action
-    if(winner = handle_betting_action(false, excluded_players, current_player_action, pot_size, deck_idx) > -1) {
+    if((winner = handle_betting_action(false, excluded_players, current_player_action, pot_size, deck_idx)) > -1) {
         award_chips_to_winner(winner, pot_size);
         return;
     }
@@ -120,6 +104,22 @@ void Table::play_hand() {
 
     // award winner chips
     award_chips_to_winners(winners, pot_size);
+}
+
+void Table::deal_hands(int& deck_idx) {
+    int num_players = players_at_table.size();
+
+    // deal first card
+    for(int offset = 1; offset <= num_players; ++offset) {
+        int player_id = (current_dealer + offset) % num_players;
+        players_at_table[player_id]->deal_card(deck->get_card(deck_idx++), false);
+    }
+
+    // deal second card
+    for(int offset = 1; offset <= num_players; ++offset) {
+        int player_id = (current_dealer + offset) % num_players;
+        players_at_table[player_id]->deal_card(deck->get_card(deck_idx++), true);
+    }
 }
 
 void Table::deal_community_card(int& deck_idx, std::vector<Card>& community_cards) {
@@ -133,7 +133,6 @@ void Table::deal_flop(int& deck_idx, std::vector<Card>& community_cards) {
     deal_community_card(deck_idx, community_cards);
     deal_community_card(deck_idx, community_cards);
 }
-    
 
 void Table::deal_turn_or_river(int& deck_idx, std::vector<Card>& community_cards) {
     // burn a card and deal a card
@@ -141,19 +140,40 @@ void Table::deal_turn_or_river(int& deck_idx, std::vector<Card>& community_cards
     deal_community_card(deck_idx, community_cards);
 }
 
-// returns a nonnegative number when the winner has already been decided by betting
-// returns -1 otherwise
-int handle_betting_action (bool is_pre_flop, std::unordered_set<int>& excluded_players) {
-    return -1;
-}
-
-// take the small blinds and update the current player to be the BB+1
+// update the current player to be the BB+1 and take the blinds from SB and BB
 void Table::take_blinds(int& player_idx, std::unordered_set<int>& excluded_players) {
     update_player_idx(player_idx, excluded_players);
     players_at_table[player_idx]->take_small_blind();
     update_player_idx(player_idx, excluded_players);
     players_at_table[player_idx]->take_big_blind();
     update_player_idx(player_idx, excluded_players);
+}
+
+// returns a nonnegative number when the winner has already been decided by betting
+// returns -1 otherwise
+int Table::handle_betting_action(bool is_pre_flop, std::unordered_set<int>& excluded_players, int& current_player_action, int& pot_size, int& deck_idx) {
+    return -1;
+}
+
+std::vector<int> Table::decide_winners(std::unordered_set<int>& excluded_players, std::vector<Card>& community_cards) {
+    return {};
+}
+    
+void Table::award_chips_to_winner(int winner, int amount) {
+    players_at_table[winner]->award_chips(amount);
+}
+
+void Table::award_chips_to_winners(const std::vector<int>& winners, int amount) {
+    int num_winners = winners.size();
+    int remaining_big_blinds = amount % num_winners;
+
+    for(int winner : winners) {
+        award_chips_to_winner(winner, amount / num_winners);
+        if(remaining_big_blinds > 0) {
+            award_chips_to_winner(winner, 1);
+            --remaining_big_blinds;
+        }
+    }
 }
 
 void Table::update_player_idx(int& player_idx, std::unordered_set<int>& excluded_players) {

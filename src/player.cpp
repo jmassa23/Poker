@@ -21,3 +21,11 @@ void Player::deal_card(const Card& card, bool has_card) {
         current_hand.first = std::move(card);
     }
 }
+
+void Player::award_chips(int amount) {
+    stack_size += amount;
+}
+
+void Player::bet_chips(int amount) {
+    stack_size -= amount;
+}
