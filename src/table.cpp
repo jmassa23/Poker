@@ -170,7 +170,9 @@ std::vector<int> Table::decide_winners(const std::vector<int>& remaining_players
 
     std::vector<int> winners;
     for(auto& [player_idx, handInfo] : hand_strengths) {
-        winners.push_back(player_idx);
+        if(handInfo.hand_rank == max_rank) {
+            winners.push_back(player_idx);
+        }   
     }
 
     return winners;
