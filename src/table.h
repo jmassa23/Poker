@@ -47,7 +47,7 @@ private:
 
     // deciding winner helpers
     HandTieBreakInfo determine_hand_strength(int player_idx, const std::vector<Card>& community_cards);
-    std::vector<int> build_five_card_hand(int player_idx, const std::vector<Card>& community_cards);
+    std::vector<Card> build_combined_hand(int player_idx, const std::vector<Card>& community_cards);
     
     // reset
     // print_decision

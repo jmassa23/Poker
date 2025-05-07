@@ -5,7 +5,7 @@ Deck::Deck() : gen(std::random_device{}()) {
     deck.reserve(DECK_SIZE);
 
     std::vector<Suit> suits = {Suit::SPADE, Suit::HEART, Suit::CLUB, Suit::DIAMOND};
-    auto ranks = std::views::iota(2, ACE_RANK+1);
+    auto ranks = std::views::iota(2, ACE_HIGH_RANK+1);
 
     // Use ranges to generate the deck
     for (const auto& suit : suits) {    

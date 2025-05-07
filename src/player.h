@@ -18,10 +18,15 @@ private:
 public:
     Player(string _player_name, int _player_id, int _buy_in);
 
+    // getters 
+    Hand get_hand();
+
     // modifiers by table on player
     void take_big_blind();
     void take_small_blind();
     void deal_card(const Card& card, bool has_card);
     void award_chips(int amount);
     void bet_chips(int amount);
+
+
 };

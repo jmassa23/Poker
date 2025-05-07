@@ -197,12 +197,38 @@ void Table::award_chips_to_winners(const std::vector<int>& winners, int amount) 
 
 // TODO - add optimization to check for the strongest hand we've seen so far
 // return a hand strength of -1 when our upper bound hand strength goes below current max
-HandTieBreakInfo determine_hand_strength(int player_idx, const std::vector<Card>& community_cards) {
-    HandTieBreakInfo temp;
-    return temp;
+HandTieBreakInfo Table::determine_hand_strength(int player_idx, const std::vector<Card>& community_cards) {
+    // create combined hand
+    std::vector<Card> combined_hand = build_combined_hand(player_idx, community_cards);
+
+    HandTieBreakInfo result;
+    return result;
 }
 
-std::vector<int> build_five_card_hand(int player_idx, const std::vector<Card>& community_cards);
+std::vector<Card> Table::build_combined_hand(int player_idx, const std::vector<Card>& community_cards) {
+    Hand hole_cards = players_at_table[player_idx]->get_hand();
+    
+    std::vector<Card> combined_hand;
+    combined_hand.reserve(8);
+    combined_hand.push_back(hole_cards.first);
+    combined_hand.push_back(hole_cards.second);
+    combined_hand.insert(combined_hand.end(), community_cards.begin(), community_cards.end());
+
+    // sort cards by descending rank
+    std::sort(combined_hand.begin(), combined_hand.end(), [](const Card& a, const Card& b){
+        return a.rank() > b.rank();
+    });
+
+    // if we have an ace, add a card with rank 1 to end of combined hand 
+    // used to check for the wheel
+    if(combined_hand[0].rank() == ACE_RANK) {
+        combined_hand.emplace_back();
+        combined_hand.back().set_rank(ACE_LOW_RANK);
+        combined_hand.back().set_suit(combined_hand[0].suit());
+    }
+
+    return combined_hand;
+}
 
 void Table::update_player_idx(int& player_idx, std::unordered_set<int>& excluded_players) {
     while(!excluded_players.contains(player_idx++)) {}
@@ -210,16 +236,16 @@ void Table::update_player_idx(int& player_idx, std::unordered_set<int>& excluded
 
 std::vector<int> Table::get_remaining_players(const std::unordered_set<int> excluded_players) {
     int num_players = players_at_table.size();
-    std::vector<int> res;
-    res.reserve(num_players - excluded_players.size());
+    std::vector<int> result;
+    result.reserve(num_players - excluded_players.size());
 
     for(int player_idx=0; player_idx<num_players; ++player_idx) {
         if(!excluded_players.contains(player_idx)) {
-            res.push_back(player_idx);
+            result.push_back(player_idx);
         }
     }
 
-    return res;
+    return result;
 }
 
 void Table::update_dealer() {
