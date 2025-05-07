@@ -221,7 +221,7 @@ std::vector<Card> Table::build_combined_hand(int player_idx, const std::vector<C
 
     // if we have an ace, add a card with rank 1 to end of combined hand 
     // used to check for the wheel
-    if(combined_hand[0].rank() == ACE_RANK) {
+    if(combined_hand[0].rank() == ACE_HIGH_RANK) {
         combined_hand.emplace_back();
         combined_hand.back().set_rank(ACE_LOW_RANK);
         combined_hand.back().set_suit(combined_hand[0].suit());
