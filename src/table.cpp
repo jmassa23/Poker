@@ -100,7 +100,8 @@ void Table::play_hand() {
     }
 
     // decide winner (contains multiple if a draw)
-    std::vector<int> winners = decide_winners(excluded_players, community_cards);
+    std::vector<int> remaining_players = get_remaining_players(excluded_players);
+    std::vector<int> winners = decide_winners(remaining_players, community_cards);
 
     // award winner chips
     award_chips_to_winners(winners, pot_size);
@@ -155,7 +156,9 @@ int Table::handle_betting_action(bool is_pre_flop, std::unordered_set<int>& excl
     return -1;
 }
 
-std::vector<int> Table::decide_winners(std::unordered_set<int>& excluded_players, std::vector<Card>& community_cards) {
+std::vector<int> Table::decide_winners(const std::vector<int>& remaining_players, const std::vector<Card>& community_cards) {
+    
+    
     return {};
 }
     
@@ -178,6 +181,20 @@ void Table::award_chips_to_winners(const std::vector<int>& winners, int amount) 
 
 void Table::update_player_idx(int& player_idx, std::unordered_set<int>& excluded_players) {
     while(!excluded_players.contains(player_idx++)) {}
+}
+
+std::vector<int> Table::get_remaining_players(const std::unordered_set<int> excluded_players) {
+    int num_players = players_at_table.size();
+    std::vector<int> res;
+    res.reserve(num_players - excluded_players.size());
+
+    for(int player_idx=0; player_idx<num_players; ++player_idx) {
+        if(!excluded_players.contains(player_idx)) {
+            res.push_back(player_idx);
+        }
+    }
+
+    return res;
 }
 
 void Table::update_dealer() {

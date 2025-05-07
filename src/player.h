@@ -22,4 +22,6 @@ public:
     void take_big_blind();
     void take_small_blind();
     void deal_card(const Card& card, bool has_card);
+    void award_chips(int amount);
+    void bet_chips(int amount);
 };
