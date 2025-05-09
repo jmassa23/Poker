@@ -46,6 +46,14 @@ private:
     void award_chips_to_winners(const std::vector<int>& winners, int amount);
 
     // deciding winner helpers
+    std::vector<int> break_hand_rank_tie(std::vector<int> eligible_to_win, std::unordered_map<int, HandTieBreakInfo> hand_strengths);
+    bool found_equal_or_higher_value_hand(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger);
+    bool found_equal_or_higher_value_card(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger);
+    bool found_equal_or_higher_value_quads(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger);
+    bool found_equal_or_higher_value_full_house(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger);
+    bool found_equal_or_higher_value_trips(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger);
+    bool found_equal_or_higher_value_two_pair(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger);
+    bool found_equal_or_higher_value_pair(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger);
     HandTieBreakInfo get_hand_strength(int player_idx, const std::vector<Card>& community_cards);
     std::vector<Card> build_combined_hand(int player_idx, const std::vector<Card>& community_cards);
     void determine_hand_strength(const std::vector<Card>& combined_cards, HandTieBreakInfo& hand_info);

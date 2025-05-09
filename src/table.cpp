@@ -160,21 +160,22 @@ std::vector<int> Table::decide_winners(const std::vector<int>& remaining_players
     int num_players = remaining_players.size();
     std::unordered_map<int, HandTieBreakInfo> hand_strengths(num_players);
     HandRank max_rank = HandRank::HIGH_CARD;
-    for(int i=0; i<num_players; ++i){
+    for(int i=0; i<num_players; ++i) {
         int player_idx = remaining_players[i];
         hand_strengths[player_idx] = get_hand_strength(player_idx, community_cards);
         if(hand_strengths[i].hand_rank > max_rank) {
             max_rank = hand_strengths[i].hand_rank;
         }
     }
-
-    // TODO - implement tie breakers for players with same hand rank
-    std::vector<int> winners;
+    
+    std::vector<int> eligible_to_win;
     for(auto& [player_idx, hand_info] : hand_strengths) {
         if(hand_info.hand_rank == max_rank) {
-            winners.push_back(player_idx);
-        }   
+            eligible_to_win.push_back(player_idx);
+        }
     }
+
+    std::vector<int> winners = break_hand_rank_tie(eligible_to_win, hand_strengths);
 
     return winners;
 }
@@ -194,6 +195,129 @@ void Table::award_chips_to_winners(const std::vector<int>& winners, int amount) 
             --remaining_big_blinds;
         }
     }
+}
+
+std::vector<int> Table::break_hand_rank_tie(std::vector<int> eligible_to_win, std::unordered_map<int, HandTieBreakInfo> hand_strengths) {
+    int winner = eligible_to_win[0];
+    // TODO - possibly implement this caching optimization
+    // winner -> set of players who had hands of equal or greater value
+    // used to avoid calling found_equal_or_higher_value_hand function a second time
+    //std::unordered_map<int, std::unordered_set<int>> cache;  
+    // first find one player that either beats or ties every other player
+    for(int i = 0; i < eligible_to_win.size(); ++i) {
+        if(found_equal_or_higher_value_hand(hand_strengths[winner], hand_strengths[eligible_to_win[i]])) {
+            winner = eligible_to_win[i];
+        }
+    }
+
+    // then find all players who tie with that player 
+    std::vector<int> winners(1, winner);
+    for(int i = 0; i < eligible_to_win.size(); ++i) {
+        if(eligible_to_win[i] == winner) {
+            continue;
+        }
+        if(found_equal_or_higher_value_hand(hand_strengths[winner], hand_strengths[eligible_to_win[i]])) {
+            winners.push_back(eligible_to_win[i]);
+        }
+    }
+
+    return winners;
+}
+
+bool Table::found_equal_or_higher_value_hand(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
+    HandRank hand_rank = current_winner.hand_rank;
+    if(hand_rank == HandRank::STRAIGHT_FLUSH || hand_rank == HandRank::FLUSH || hand_rank == HandRank::STRAIGHT
+      || hand_rank == HandRank::HIGH_CARD) {
+        return found_equal_or_higher_value_card(current_winner, challenger);
+    }
+    else if(hand_rank == HandRank::QUADS) {
+        return found_equal_or_higher_value_quads(current_winner, challenger);
+    }
+    else if(hand_rank == HandRank::FULL_HOUSE) {
+        return found_equal_or_higher_value_full_house(current_winner, challenger);
+    }
+    else if(hand_rank == HandRank::TRIPS) {
+        return found_equal_or_higher_value_trips(current_winner, challenger);
+    }
+    else if(hand_rank == HandRank::TWO_PAIR) {
+        return found_equal_or_higher_value_two_pair(current_winner, challenger);
+    }
+    else if(hand_rank == HandRank::PAIR) {
+        return found_equal_or_higher_value_pair(current_winner, challenger);
+    }
+
+    std::cout << "ERROR: UNKNOWN ERROR OCCURRED. HAND MAY BE INVALID." << std::endl;
+    return false;
+}
+
+bool Table::found_equal_or_higher_value_card(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
+    int num_cards = current_winner.indifferent_cards.size();
+    for(int card_idx = 0; card_idx < num_cards; ++card_idx) {
+        if(current_winner.indifferent_cards[card_idx].rank() > challenger.indifferent_cards[card_idx].rank()) {
+            return false;
+        }
+        else if(current_winner.indifferent_cards[card_idx].rank() < challenger.indifferent_cards[card_idx].rank()) {
+            return true;
+        }
+    }
+    return true;
+}
+
+bool Table::found_equal_or_higher_value_quads(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
+    if(current_winner.quads_rank > challenger.quads_rank) {
+        return true;
+    }
+    else if(current_winner.quads_rank < challenger.quads_rank) {
+        return false;
+    }
+    return found_equal_or_higher_value_card(current_winner, challenger);
+}
+
+bool Table::found_equal_or_higher_value_full_house(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
+    if(found_equal_or_higher_value_trips(current_winner, challenger)) {
+        return true;
+    }
+    return found_equal_or_higher_value_pair(current_winner, challenger);
+}
+
+bool Table::found_equal_or_higher_value_trips(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
+    if(current_winner.trips_rank > challenger.trips_rank) {
+        return true;
+    }
+    else if(current_winner.trips_rank < challenger.trips_rank) {
+        return false;
+    }
+    return found_equal_or_higher_value_card(current_winner, challenger);
+}
+
+bool Table::found_equal_or_higher_value_two_pair(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
+    // first pair
+    if(current_winner.pair_ranks.first > challenger.pair_ranks.first) {
+        return true;
+    }
+    else if(current_winner.pair_ranks.first < challenger.pair_ranks.first) {
+        return false;
+    }
+
+    // second pair
+    if(current_winner.pair_ranks.second > challenger.pair_ranks.second) {
+        return true;
+    }
+    else if(current_winner.pair_ranks.second < challenger.pair_ranks.second) {
+        return false;
+    }
+
+    return found_equal_or_higher_value_card(current_winner, challenger);
+}
+
+bool Table::found_equal_or_higher_value_pair(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
+    if(current_winner.pair_ranks.first > challenger.pair_ranks.first) {
+        return true;
+    }
+    else if(current_winner.pair_ranks.first < challenger.pair_ranks.first) {
+        return false;
+    }
+    return found_equal_or_higher_value_card(current_winner, challenger);
 }
 
 // TODO - add optimization to check for the strongest hand we've seen so far
@@ -271,6 +395,7 @@ void Table::check_for_straight_flush(HandTieBreakInfo& hand_info, const std::vec
         if(++suits_count[card.suit()] == 5) {
             is_flush = true;
             flush_suit = card.suit();
+            break;
         }
     }
     
