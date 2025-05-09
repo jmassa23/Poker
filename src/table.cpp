@@ -160,6 +160,8 @@ std::vector<int> Table::decide_winners(const std::vector<int>& remaining_players
     int num_players = remaining_players.size();
     std::unordered_map<int, HandTieBreakInfo> hand_strengths(num_players);
     HandRank max_rank = HandRank::HIGH_CARD;
+
+    // find the strongest hand rank amongst the remaining players
     for(int i=0; i<num_players; ++i) {
         int player_idx = remaining_players[i];
         hand_strengths[player_idx] = get_hand_strength(player_idx, community_cards);
@@ -168,6 +170,7 @@ std::vector<int> Table::decide_winners(const std::vector<int>& remaining_players
         }
     }
     
+    // players with the strongest hand rank at the table get considered for tie break
     std::vector<int> eligible_to_win;
     for(auto& [player_idx, hand_info] : hand_strengths) {
         if(hand_info.hand_rank == max_rank) {
@@ -186,10 +189,11 @@ void Table::award_chips_to_winner(int winner, int amount) {
 
 void Table::award_chips_to_winners(const std::vector<int>& winners, int amount) {
     int num_winners = winners.size();
+    int award_amount = amount / num_winners;
     int remaining_big_blinds = amount % num_winners;
 
     for(int winner : winners) {
-        award_chips_to_winner(winner, amount / num_winners);
+        award_chips_to_winner(winner, award_amount);
         if(remaining_big_blinds > 0) {
             award_chips_to_winner(winner, 1);
             --remaining_big_blinds;
@@ -199,12 +203,13 @@ void Table::award_chips_to_winners(const std::vector<int>& winners, int amount) 
 
 std::vector<int> Table::break_hand_rank_tie(std::vector<int> eligible_to_win, std::unordered_map<int, HandTieBreakInfo> hand_strengths) {
     int winner = eligible_to_win[0];
+    int num_players = eligible_to_win.size();
     // TODO - possibly implement this caching optimization
     // winner -> set of players who had hands of equal or greater value
     // used to avoid calling found_equal_or_higher_value_hand function a second time
     //std::unordered_map<int, std::unordered_set<int>> cache;  
     // first find one player that either beats or ties every other player
-    for(int i = 0; i < eligible_to_win.size(); ++i) {
+    for(int i = 1; i < num_players; ++i) {
         if(found_equal_or_higher_value_hand(hand_strengths[winner], hand_strengths[eligible_to_win[i]])) {
             winner = eligible_to_win[i];
         }
@@ -212,7 +217,7 @@ std::vector<int> Table::break_hand_rank_tie(std::vector<int> eligible_to_win, st
 
     // then find all players who tie with that player 
     std::vector<int> winners(1, winner);
-    for(int i = 0; i < eligible_to_win.size(); ++i) {
+    for(int i = 0; i < num_players; ++i) {
         if(eligible_to_win[i] == winner) {
             continue;
         }
