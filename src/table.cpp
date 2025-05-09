@@ -270,10 +270,10 @@ bool Table::found_equal_or_higher_value_card(HandTieBreakInfo& current_winner, H
 
 bool Table::found_equal_or_higher_value_quads(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
     if(current_winner.quads_rank > challenger.quads_rank) {
-        return true;
+        return false;
     }
     else if(current_winner.quads_rank < challenger.quads_rank) {
-        return false;
+        return true;
     }
     return found_equal_or_higher_value_card(current_winner, challenger);
 }
@@ -287,10 +287,10 @@ bool Table::found_equal_or_higher_value_full_house(HandTieBreakInfo& current_win
 
 bool Table::found_equal_or_higher_value_trips(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
     if(current_winner.trips_rank > challenger.trips_rank) {
-        return true;
+        return false;
     }
     else if(current_winner.trips_rank < challenger.trips_rank) {
-        return false;
+        return true;
     }
     return found_equal_or_higher_value_card(current_winner, challenger);
 }
@@ -298,18 +298,18 @@ bool Table::found_equal_or_higher_value_trips(HandTieBreakInfo& current_winner, 
 bool Table::found_equal_or_higher_value_two_pair(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
     // first pair
     if(current_winner.pair_ranks.first > challenger.pair_ranks.first) {
-        return true;
+        return false;
     }
     else if(current_winner.pair_ranks.first < challenger.pair_ranks.first) {
-        return false;
+        return true;
     }
 
     // second pair
     if(current_winner.pair_ranks.second > challenger.pair_ranks.second) {
-        return true;
+        return false;
     }
     else if(current_winner.pair_ranks.second < challenger.pair_ranks.second) {
-        return false;
+        return true;
     }
 
     return found_equal_or_higher_value_card(current_winner, challenger);
@@ -317,10 +317,10 @@ bool Table::found_equal_or_higher_value_two_pair(HandTieBreakInfo& current_winne
 
 bool Table::found_equal_or_higher_value_pair(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
     if(current_winner.pair_ranks.first > challenger.pair_ranks.first) {
-        return true;
+        return false;
     }
     else if(current_winner.pair_ranks.first < challenger.pair_ranks.first) {
-        return false;
+        return true;
     }
     return found_equal_or_higher_value_card(current_winner, challenger);
 }
