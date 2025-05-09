@@ -72,6 +72,7 @@ private:
     // print_decision
 
     // other helpers
+    void initialize_excluded_players(std::unordered_set<int>& excluded_players);
     void update_player_idx(int& player_idx, std::unordered_set<int>& excluded_players);
     void take_blinds(int& player_idx, std::unordered_set<int>& excluded_players);
     std::vector<int> get_remaining_players(const std::unordered_set<int> excluded_players);

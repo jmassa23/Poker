@@ -62,6 +62,7 @@ void Table::play_hand() {
     int pot_size = 0; // in big blinds
     int deck_idx = 0;
     std::unordered_set<int> excluded_players; // players no longer in the hand
+    initialize_excluded_players(excluded_players);
 
     int current_player_action = current_dealer;
     deal_hands(deck_idx);
@@ -141,7 +142,7 @@ void Table::deal_turn_or_river(int& deck_idx, std::vector<Card>& community_cards
     deal_community_card(deck_idx, community_cards);
 }
 
-// update the current player to be the BB+1 and take the blinds from SB and BB
+// take the blinds from SB and BB and then update the current player to be the BB+1
 void Table::take_blinds(int& player_idx, std::unordered_set<int>& excluded_players) {
     update_player_idx(player_idx, excluded_players);
     players_at_table[player_idx]->take_small_blind();
@@ -533,6 +534,14 @@ void Table::fill_n_highest_cards(const std::vector<Card>& combined_cards, HandTi
     hand_info.indifferent_cards.reserve(n);
     for(int i=0; i<n; ++i) {
         hand_info.indifferent_cards.push_back(combined_cards[i]);
+    }
+}
+
+void Table::initialize_excluded_players(std::unordered_set<int>& excluded_players) {
+    for(int player_idx = 0; player_idx < players_at_table.size(); ++player_idx) {
+        if(players_at_table[player_idx]->get_stack_size() == 0) {
+            excluded_players.insert(player_idx);
+        }
     }
 }
 

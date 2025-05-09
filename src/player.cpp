@@ -8,6 +8,10 @@ Hand Player::get_hand() {
     return current_hand;
 }
 
+int Player::get_stack_size() {
+    return stack_size;
+}
+
 void Player::take_big_blind() {
     stack_size -= 1;
 }

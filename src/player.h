@@ -20,6 +20,7 @@ public:
 
     // getters 
     Hand get_hand();
+    int get_stack_size();
 
     // modifiers by table on player
     void take_big_blind();
