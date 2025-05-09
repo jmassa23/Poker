@@ -88,10 +88,10 @@ inline HandRank& operator--(HandRank& hand_rank) {
 
 struct HandTieBreakInfo {
     std::vector<Card> indifferent_cards;
-    std::pair<int, int> pair_ranks;
-    HandRank hand_rank;
-    int trips_rank;
-    int quads_rank;
+    std::pair<int, int> pair_ranks = {0,0};
+    HandRank hand_rank = HandRank::HIGH_CARD;
+    int trips_rank = 0;
+    int quads_rank = 0;
 };
 
 // // sent by the server to the client

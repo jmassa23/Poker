@@ -49,7 +49,17 @@ private:
     HandTieBreakInfo get_hand_strength(int player_idx, const std::vector<Card>& community_cards);
     std::vector<Card> build_combined_hand(int player_idx, const std::vector<Card>& community_cards);
     void determine_hand_strength(const std::vector<Card>& combined_cards, HandTieBreakInfo& hand_info);
-    
+    void check_for_hand(HandRank& upper_bound_hand_rank, HandTieBreakInfo& hand_info, const std::vector<Card>& combined_cards);
+    void check_for_straight_flush(HandTieBreakInfo& hand_info, const std::vector<Card>& combined_cards);
+    void check_for_quads(HandTieBreakInfo& hand_info, const std::vector<Card>& combined_cards);
+    void check_for_full_house(HandTieBreakInfo& hand_info);
+    void check_for_straight_given_flush(HandTieBreakInfo& hand_info, const std::vector<Card>& flush_cards);
+    void check_for_straight(HandTieBreakInfo& hand_info, const std::vector<Card>& cards);
+    bool check_for_straight(const std::vector<Card>& cards, Card& high_card);
+    void update_hand_rank_if_necessary(HandRank hand_rank, HandTieBreakInfo& hand_info);
+    void get_additional_five_card_hand_data(const std::vector<Card>& combined_cards, HandTieBreakInfo& hand_info);
+    void fill_n_highest_cards(const std::vector<Card>& combined_cards, HandTieBreakInfo& hand_info, int n);
+
     // reset
     // print_decision
 

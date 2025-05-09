@@ -168,6 +168,7 @@ std::vector<int> Table::decide_winners(const std::vector<int>& remaining_players
         }
     }
 
+    // TODO - implement tie breakers for players with same hand rank
     std::vector<int> winners;
     for(auto& [player_idx, hand_info] : hand_strengths) {
         if(hand_info.hand_rank == max_rank) {
@@ -232,18 +233,151 @@ std::vector<Card> Table::build_combined_hand(int player_idx, const std::vector<C
 }
 
 void Table::determine_hand_strength(const std::vector<Card>& combined_cards, HandTieBreakInfo& hand_info) {
-    // will serve as lower bound for hank rank
-    hand_info.hand_rank = HandRank::HIGH_CARD;
-    HandRank upper_bound_hand_rank = HandRank::STRAIGHT_FLUSH;
-
+    // will serve as lower bound for hand rank
+    hand_info.hand_rank = HandRank::HIGH_CARD; // best hand rank we have so far
+    HandRank upper_bound_hand_rank = HandRank::STRAIGHT_FLUSH; // hand rank we are currently checking for
 
     while(upper_bound_hand_rank > hand_info.hand_rank) {
-        
+        check_for_hand(upper_bound_hand_rank, hand_info, combined_cards);
         --upper_bound_hand_rank;
     }
 
     // depending on the rank of hand we have, store needed info about the five card hand
     get_additional_five_card_hand_data(combined_cards, hand_info);
+}
+
+void Table::check_for_hand(HandRank& upper_bound_hand_rank, HandTieBreakInfo& hand_info, const std::vector<Card>& combined_cards) {
+    // dont need to check for flush, trips, two pair, or pair as we check in other functions
+    if(upper_bound_hand_rank == HandRank::STRAIGHT_FLUSH) {
+        check_for_straight_flush(hand_info, combined_cards);
+    }
+    else if(upper_bound_hand_rank == HandRank::QUADS) { 
+        check_for_quads(hand_info, combined_cards);
+    }
+    else if(upper_bound_hand_rank == HandRank::FULL_HOUSE) {
+        check_for_full_house(hand_info);
+    }
+    else if(upper_bound_hand_rank == HandRank::STRAIGHT) {
+        check_for_straight(hand_info, combined_cards);
+    }
+}
+
+void Table::check_for_straight_flush(HandTieBreakInfo& hand_info, const std::vector<Card>& combined_cards) {
+    // check for flush 
+    bool is_flush = false;
+    Suit flush_suit = Suit::INVALID;
+    std::vector<int> suits_count(4, 0);
+    for(const Card& card : combined_cards) {
+        if(++suits_count[card.suit()] == 5) {
+            is_flush = true;
+            flush_suit = card.suit();
+        }
+    }
+    
+    if(!is_flush) {
+        return;
+    }
+
+    // new minimum possible hand rank is a flush
+    hand_info.hand_rank = HandRank::FLUSH;
+
+    // if we already have a flush, check if flush makes a straight also
+    std::vector<Card> flush_cards;
+    for(const Card& card : combined_cards) {
+        if(card.suit() == flush_suit) {
+            flush_cards.push_back(card);
+        }
+    }
+
+    check_for_straight_given_flush(hand_info, flush_cards);
+}
+
+void Table::check_for_quads(HandTieBreakInfo& hand_info, const std::vector<Card>& combined_cards) {
+    // we can check for all multi-rank hands (pair, two pair, trips, full house, quads)
+    std::vector<int> card_rank_count(ACE_HIGH_RANK, 0);
+    for(const Card& card : combined_cards) {
+        card_rank_count[card.rank()]++;
+    }
+
+    for(int card_rank=card_rank_count.size()-1; card_rank>=0; --card_rank) {
+        if(card_rank_count[card_rank] == 4 && hand_info.quads_rank == 0) {
+            hand_info.hand_rank = HandRank::QUADS;
+            hand_info.quads_rank = card_rank;
+            return;
+        }
+        else if(card_rank_count[card_rank] == 3 && hand_info.trips_rank == 0) {
+            update_hand_rank_if_necessary(HandRank::TRIPS, hand_info);
+            hand_info.trips_rank = card_rank;
+        }
+        else if(card_rank_count[card_rank] == 2) {
+            if(hand_info.pair_ranks.second > 0) { // already have highest possible pairs
+                continue;
+            }
+            else if(hand_info.pair_ranks.first > 0) { // we have two pair
+                update_hand_rank_if_necessary(HandRank::TWO_PAIR, hand_info);
+                hand_info.pair_ranks.second = card_rank;
+            }
+            else { // we have a pair
+                update_hand_rank_if_necessary(HandRank::PAIR, hand_info);
+                hand_info.pair_ranks.first = card_rank;
+            }
+        }
+    }
+}
+
+void Table::check_for_full_house(HandTieBreakInfo& hand_info) {
+    // trivial as we already know if we have both trips and a pair
+    if(hand_info.trips_rank > 0 && hand_info.pair_ranks.first > 0) {
+        hand_info.hand_rank = HandRank::FULL_HOUSE;
+    }
+}
+
+void Table::check_for_straight_given_flush(HandTieBreakInfo& hand_info, const std::vector<Card>& flush_cards) {
+    Card high_card;
+    if(check_for_straight(flush_cards, high_card)) {
+        hand_info.hand_rank = HandRank::STRAIGHT_FLUSH;
+        hand_info.indifferent_cards.reserve(1);
+        hand_info.indifferent_cards.push_back(high_card);
+    }
+    else { // flush but not straight flush
+        fill_n_highest_cards(flush_cards, hand_info, 5);
+    }
+}
+
+void Table::check_for_straight(HandTieBreakInfo& hand_info, const std::vector<Card>& cards) {
+    Card high_card;
+    if(check_for_straight(cards, high_card)) {
+        hand_info.hand_rank = HandRank::STRAIGHT;
+        hand_info.indifferent_cards.reserve(1);
+        hand_info.indifferent_cards.push_back(high_card);
+    }
+}
+
+bool Table::check_for_straight(const std::vector<Card>& cards, Card& high_card) {
+    int count = 1;
+    high_card = cards[0];
+    for(int i=1; i<cards.size(); ++i) {
+        if(cards[i-1].rank() - cards[i].rank() == 1) {
+            if(++count == 5) {
+                return true;
+            }
+        }
+        else if(cards[i-1].rank() == cards[i].rank()) {
+            continue;
+        }
+        else {
+            high_card = cards[i];
+            count = 1;
+        }
+    }
+
+    return false;
+}
+
+void Table::update_hand_rank_if_necessary(HandRank hand_rank, HandTieBreakInfo& hand_info) {
+    if(hand_rank > hand_info.hand_rank) {
+        hand_info.hand_rank = hand_rank;
+    }
 }
 
 void Table::get_additional_five_card_hand_data(const std::vector<Card>& combined_cards, HandTieBreakInfo& hand_info) {
