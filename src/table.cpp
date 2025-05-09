@@ -258,22 +258,22 @@ bool Table::found_equal_or_higher_value_hand(HandTieBreakInfo& current_winner, H
 bool Table::found_equal_or_higher_value_card(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
     int num_cards = current_winner.indifferent_cards.size();
     for(int card_idx = 0; card_idx < num_cards; ++card_idx) {
-        if(current_winner.indifferent_cards[card_idx].rank() > challenger.indifferent_cards[card_idx].rank()) {
-            return false;
-        }
-        else if(current_winner.indifferent_cards[card_idx].rank() < challenger.indifferent_cards[card_idx].rank()) {
+        if(current_winner.indifferent_cards[card_idx].rank() < challenger.indifferent_cards[card_idx].rank()) {
             return true;
+        }
+        else if(current_winner.indifferent_cards[card_idx].rank() > challenger.indifferent_cards[card_idx].rank()) {
+            return false;
         }
     }
     return true;
 }
 
 bool Table::found_equal_or_higher_value_quads(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
-    if(current_winner.quads_rank > challenger.quads_rank) {
-        return false;
-    }
-    else if(current_winner.quads_rank < challenger.quads_rank) {
+    if(current_winner.quads_rank < challenger.quads_rank) {
         return true;
+    }
+    else if(current_winner.quads_rank > challenger.quads_rank) {
+        return false;
     }
     return found_equal_or_higher_value_card(current_winner, challenger);
 }
@@ -286,41 +286,41 @@ bool Table::found_equal_or_higher_value_full_house(HandTieBreakInfo& current_win
 }
 
 bool Table::found_equal_or_higher_value_trips(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
-    if(current_winner.trips_rank > challenger.trips_rank) {
-        return false;
-    }
-    else if(current_winner.trips_rank < challenger.trips_rank) {
+    if(current_winner.trips_rank < challenger.trips_rank) {
         return true;
+    }
+    else if(current_winner.trips_rank > challenger.trips_rank) {
+        return false;
     }
     return found_equal_or_higher_value_card(current_winner, challenger);
 }
 
 bool Table::found_equal_or_higher_value_two_pair(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
     // first pair
-    if(current_winner.pair_ranks.first > challenger.pair_ranks.first) {
-        return false;
-    }
-    else if(current_winner.pair_ranks.first < challenger.pair_ranks.first) {
+    if(current_winner.pair_ranks.first < challenger.pair_ranks.first) {
         return true;
+    }
+    else if(current_winner.pair_ranks.first > challenger.pair_ranks.first) {
+        return false;
     }
 
     // second pair
-    if(current_winner.pair_ranks.second > challenger.pair_ranks.second) {
-        return false;
-    }
-    else if(current_winner.pair_ranks.second < challenger.pair_ranks.second) {
+    if(current_winner.pair_ranks.second < challenger.pair_ranks.second) {
         return true;
+    }
+    else if(current_winner.pair_ranks.second > challenger.pair_ranks.second) {
+        return false;
     }
 
     return found_equal_or_higher_value_card(current_winner, challenger);
 }
 
 bool Table::found_equal_or_higher_value_pair(HandTieBreakInfo& current_winner, HandTieBreakInfo& challenger) {
-    if(current_winner.pair_ranks.first > challenger.pair_ranks.first) {
-        return false;
-    }
-    else if(current_winner.pair_ranks.first < challenger.pair_ranks.first) {
+    if(current_winner.pair_ranks.first < challenger.pair_ranks.first) {
         return true;
+    }
+    else if(current_winner.pair_ranks.first > challenger.pair_ranks.first) {
+        return false;
     }
     return found_equal_or_higher_value_card(current_winner, challenger);
 }
