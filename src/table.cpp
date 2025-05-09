@@ -350,12 +350,13 @@ std::vector<Card> Table::build_combined_hand(int player_idx, const std::vector<C
         return a.rank() > b.rank();
     });
 
-    // if we have an ace, add a card with rank 1 to end of combined hand 
-    // used to check for the wheel
+    // if we have an ace, add a card with rank 1 to end of combined hand.
+    // used to check for the wheel.
+    // Don't want Low Ace's suit to unintentionally give us a flush
     if(combined_hand[0].rank() == ACE_HIGH_RANK) {
         combined_hand.emplace_back();
         combined_hand.back().set_rank(ACE_LOW_RANK);
-        combined_hand.back().set_suit(combined_hand[0].suit());
+        combined_hand.back().set_suit(Suit::INVALID);
     }
 
     return combined_hand;
@@ -397,6 +398,9 @@ void Table::check_for_straight_flush(HandTieBreakInfo& hand_info, const std::vec
     Suit flush_suit = Suit::INVALID;
     std::vector<int> suits_count(4, 0);
     for(const Card& card : combined_cards) {
+        if(card.rank() == ACE_LOW_RANK || card.suit() == Suit::INVALID) {
+            continue;
+        }
         if(++suits_count[card.suit()] == 5) {
             is_flush = true;
             flush_suit = card.suit();
