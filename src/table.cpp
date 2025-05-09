@@ -537,7 +537,7 @@ void Table::fill_n_highest_cards(const std::vector<Card>& combined_cards, HandTi
 }
 
 void Table::update_player_idx(int& player_idx, std::unordered_set<int>& excluded_players) {
-    while(!excluded_players.contains(player_idx++)) {}
+    while(excluded_players.contains(++player_idx)) {}
 }
 
 std::vector<int> Table::get_remaining_players(const std::unordered_set<int> excluded_players) {
