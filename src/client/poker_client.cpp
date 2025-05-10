@@ -58,14 +58,14 @@ void PokerClient::print_card(const Card& card) const {
         case Suit::SPADE:
             std::cout << "\u2660";
             break;
-        case Suit::HEART:
-            std::cout << "\u2665";
+        case Suit::HEART: // in red 
+            std::cout << "\033[31m\u2665\033[0m";
             break;
         case Suit::CLUB:
             std::cout << "\u2663";
             break;
-        case Suit::DIAMOND:
-            std::cout << "\u2666";
+        case Suit::DIAMOND: // in red
+            std::cout << "\033[31m\u2666\033[0m";
             break;
         default:
             std::cout << "ERROR: This text should never print." << std::endl;
