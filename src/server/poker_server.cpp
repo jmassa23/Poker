@@ -1,10 +1,18 @@
 #include "poker_server.h"
 
+void handle_signal(int signum) {
+    std::cout << "\nCaught signal " << signum << ", exiting gracefully...\n";
+    std::exit(0);  // triggers network's destructor
+}
+
 PokerServer::PokerServer() : network() {}
 
 PokerServer::~PokerServer() {}
 
 void PokerServer::run() {
+    signal(SIGINT, handle_signal);
+    signal(SIGTERM, handle_signal);
+
     bool networkRunning = network.initialize_server();
     if(!networkRunning){
         perror("Error: Could not initialize server.");

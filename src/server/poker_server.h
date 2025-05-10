@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <csignal>
 
 #include "network_manager.h"
 #include "table.h"
