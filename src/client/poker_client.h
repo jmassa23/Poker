@@ -27,6 +27,11 @@ private:
     NetworkManager network;
 
     void retrieve_server_messages(int socket);
+    void print_board(const DealerUpdate& dealer_update) const;
     void print_card(const Card& card) const;
 
+    void handle_player_stack_update(const PlayerStackUpdate& player_stack_update);
+    void handle_player_action_update(const PlayerActionUpdate& player_action_update);
+    void handle_dealer_update(const DealerUpdate& dealer_update);
+    void handle_hand_result_update(const HandResult& hand_result);
 };

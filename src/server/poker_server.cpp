@@ -51,9 +51,9 @@ void PokerServer::play_game(const std::vector<int>& client_sockets) const {
     // Create a table and run the game
     PokerTable table = std::make_unique<Table>(client_sockets);
 
-    //GamePacket game_packet;
-    //create_game_start_message(game_packet);
-    //table->broadcast_to_players(game_packet);
+    GamePacket game_packet;
+    create_game_start_message(game_packet);
+    table->broadcast_to_players(game_packet);
     
     // run the game
     while(true) {
@@ -67,6 +67,9 @@ void PokerServer::play_game(const std::vector<int>& client_sockets) const {
 }
 
 void PokerServer::create_game_start_message(GamePacket& game_packet) const {
+    DealerUpdate* dealer_update = game_packet.mutable_dealer_update();
+    dealer_update->set_game_state(GameState::SET_UP);
+
     // game_packet.set_game_state(GameState::SET_UP);
     // Card* card1 = game_packet.add_board();
     // card1->set_rank(14);

@@ -63,7 +63,7 @@ void Table::play_hand() {
     int pot_size = 0; // in big blinds
     int deck_idx = 0;
     std::unordered_set<int> excluded_players; // players no longer in the hand
-    send_player_stack_update(excluded_players);
+    send_player_stack_update(excluded_players); // want to show if players have stack size 0
     initialize_excluded_players(excluded_players);
 
     int current_player_action = current_dealer;
@@ -570,6 +570,8 @@ void Table::send_player_stack_update(const std::unordered_set<int>& excluded_pla
 }
 
 void Table::send_dealer_update(GameState game_state, const std::vector<Card>& community_cards) {
+    // TODO - optimization: maintain a pointer to dealer_update with community cards set 
+    // so we don't have to repeatedly add all the community cards to the game packet
     GamePacket game_packet;
     DealerUpdate* dealer_update = game_packet.mutable_dealer_update();
     dealer_update->set_game_state(game_state);

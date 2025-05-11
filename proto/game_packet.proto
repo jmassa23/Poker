@@ -7,8 +7,8 @@ enum GameState {
     POST_FLOP = 2;
     POST_TURN = 3;
     POST_RIVER = 4;
-    POST_HAND = 5;
-    SHOWDOWN = 6;
+    SHOWDOWN = 5;
+    POST_HAND = 6;
 }
 
 enum PlayerAction {
