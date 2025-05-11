@@ -63,6 +63,7 @@ void Table::play_hand() {
     int pot_size = 0; // in big blinds
     int deck_idx = 0;
     std::unordered_set<int> excluded_players; // players no longer in the hand
+    send_player_stack_update(excluded_players);
     initialize_excluded_players(excluded_players);
 
     int current_player_action = current_dealer;
@@ -81,6 +82,8 @@ void Table::play_hand() {
         return;
     }
     deal_flop(deck_idx, community_cards);
+    send_dealer_update(GameState::POST_FLOP, community_cards);
+    send_player_stack_update(excluded_players);
 
     std::cout << "Flop dealt. Pre turn betting.\n";
     // handle post flop betting action then deal turn
@@ -89,6 +92,8 @@ void Table::play_hand() {
         return;
     }
     deal_turn_or_river(deck_idx, community_cards);
+    send_dealer_update(GameState::POST_TURN, community_cards);
+    send_player_stack_update(excluded_players);
 
     std::cout << "Turn dealt. Pre river betting.\n";
     // handle post turn betting action then deal river
@@ -97,6 +102,8 @@ void Table::play_hand() {
         return;
     }
     deal_turn_or_river(deck_idx, community_cards);
+    send_dealer_update(GameState::POST_RIVER, community_cards);
+    send_player_stack_update(excluded_players);
 
     std::cout << "River dealt. Final betting.\n";
     // handle post river action
@@ -543,8 +550,61 @@ void Table::fill_n_highest_cards(const std::vector<Card>& combined_cards, HandTi
     }
 }
 
-void Table::send_player_stack_update() {
-    return;
+void Table::send_player_stack_update(const std::unordered_set<int>& excluded_players) {
+    // TODO - optimization : keep the PlayerStackUpdate object and update it instead of repeatedly rebuilding it
+    GamePacket game_packet;
+    PlayerStackUpdate* player_stack_update = game_packet.mutable_stack_update();
+    
+    int num_players = players_at_table.size();
+    for(int player_idx = 0; player_idx < num_players; ++player_idx) {
+        if(excluded_players.contains(player_idx)) {
+            continue;
+        }
+
+        auto* player = player_stack_update->add_players();
+        player->set_player_name(players_at_table[player_idx]->get_player_name());
+        player->set_stack_size(players_at_table[player_idx]->get_stack_size());
+    }
+
+    broadcast_to_players(game_packet);
+}
+
+void Table::send_dealer_update(GameState game_state, const std::vector<Card>& community_cards) {
+    GamePacket game_packet;
+    DealerUpdate* dealer_update = game_packet.mutable_dealer_update();
+    dealer_update->set_game_state(game_state);
+
+    for(const Card& card : community_cards) {
+        auto* community_card = dealer_update->add_community_cards();
+        community_card->set_rank(card.rank());
+        community_card->set_suit(card.suit());
+    }
+
+    broadcast_to_players(game_packet);
+}
+
+
+void Table::send_hand_result(int winner, int pot_size) {
+    GamePacket game_packet;
+    HandResult* hand_result = game_packet.mutable_hand_result();
+    hand_result->add_winners(winner);
+    hand_result->set_pot_size(pot_size);
+
+    broadcast_to_players(game_packet);
+}
+
+
+void Table::send_hand_result(const std::vector<int> winners, int pot_size, HandRank hand_rank) {
+    GamePacket game_packet;
+    HandResult* hand_result = game_packet.mutable_hand_result();
+
+    for(int winner : winners) {
+        hand_result->add_winners(winner);
+    }
+    hand_result->set_pot_size(pot_size);
+    hand_result->set_hand_rank(hand_rank);
+
+    broadcast_to_players(game_packet);
 }
 
 void Table::initialize_excluded_players(std::unordered_set<int>& excluded_players) {

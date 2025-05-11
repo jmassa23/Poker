@@ -69,8 +69,10 @@ private:
     void fill_n_highest_cards(const std::vector<Card>& combined_cards, HandTieBreakInfo& hand_info, int n);
 
     // sending updates to client helpers
-    void send_player_stack_update();
-
+    void send_player_stack_update(const std::unordered_set<int>& excluded_players);
+    void send_player_action_update();
+    void send_hand_result(int winner, int pot_size);
+    void send_hand_result(const std::vector<int> winners, int pot_size, HandRank hand_rank);
     // reset
     // print_decision
 

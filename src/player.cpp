@@ -12,6 +12,10 @@ int Player::get_stack_size() {
     return stack_size;
 }
 
+string Player::get_player_name() {
+    return player_name;
+}
+
 void Player::take_big_blind() {
     stack_size -= 1;
 }
