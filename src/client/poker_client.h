@@ -10,8 +10,8 @@ public:
     ~PokerClient();
 
     void run(const char* ip_address);
-    void print_board(const GamePacket& game_packet) const;
-    void print_card(const Card& card) const;
+    //void print_board(const GamePacket& game_packet) const;
+    
 
     // helpers 
     //void run_game();
@@ -25,4 +25,8 @@ public:
     // action print functions
 private:
     NetworkManager network;
+
+    void retrieve_server_messages(int socket);
+    void print_card(const Card& card) const;
+
 };

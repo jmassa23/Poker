@@ -28,17 +28,17 @@ enum class DataTransferType {
     RECEIVE
 };
 
-enum class HandRank {
-    HIGH_CARD, // value of 0
-    PAIR,
-    TWO_PAIR,
-    TRIPS,
-    STRAIGHT,
-    FLUSH,
-    FULL_HOUSE,
-    QUADS,
-    STRAIGHT_FLUSH // value of 8
-};
+// enum class HandRank {
+//     HIGH_CARD, // value of 0
+//     PAIR,
+//     TWO_PAIR,
+//     TRIPS,
+//     STRAIGHT,
+//     FLUSH,
+//     FULL_HOUSE,
+//     QUADS,
+//     STRAIGHT_FLUSH // value of 8
+// };
 
 inline HandRank& operator--(HandRank& hand_rank) {
     hand_rank = static_cast<HandRank>(static_cast<int>(hand_rank) - 1);

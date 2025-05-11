@@ -8,6 +8,7 @@ enum GameState {
     POST_TURN = 3;
     POST_RIVER = 4;
     POST_HAND = 5;
+    SHOWDOWN = 6;
 }
 
 enum PlayerAction {
@@ -29,12 +30,16 @@ message Card {
     Suit suit = 2;       // Card suit (SPADE, HEART, CLUB, DIAMOND, INVALID)
 }
 
-// Message for GamePacket (sent by the server to the client)
-message GamePacket {
-    repeated Card board = 1;      // The board (a vector of cards)
-    GameState game_state = 2;     // Current game state (e.g., PRE_FLOP, POST_RIVER)
-    int32 award_amount = 3;       // Award amount for the round
-    int32 player_id = 4;          // Player ID
+enum HandRank {
+    HIGH_CARD = 0;
+    PAIR = 1;
+    TWO_PAIR = 2;
+    TRIPS = 3;
+    STRAIGHT = 4;
+    FLUSH = 5;
+    FULL_HOUSE = 6;
+    QUADS = 7;
+    STRAIGHT_FLUSH = 8;
 }
 
 // Message for PlayerDecision (sent by the client to the server)
@@ -44,5 +49,45 @@ message PlayerDecision {
     int32 bet_size = 3;           // Bet size (0 for check or fold, >0 for raise)
 }
 
+message PlayerStack {
+    string name = 1;
+    int32 stack_size = 2;
+}
 
+message PlayerStackUpdate {
+    repeated PlayerStack players = 1;
+}
 
+message PlayerActionUpdate {
+    int32 player_id = 1;
+    string player_name = 2;
+    PlayerAction action = 3;
+    int32 pot_size = 4;
+    bool is_current_turn = 5;
+}
+
+message DealerUpdate {
+    GameState game_state = 1;
+    repeated Card community_cards = 2;
+}
+
+message HoleCards {
+    Card first = 1;
+    Card second = 2;
+}
+
+message HandResult {
+    repeated int32 winners = 1;
+    repeated HoleCards hands = 2;
+    HandRank hand_rank = 3;
+}
+
+// Message for GamePacket (sent by the server to the client)
+message GamePacket {
+    oneof payload {
+        PlayerStackUpdate stack_update = 1;
+        PlayerActionUpdate action_update = 2;
+        DealerUpdate dealer_update = 3;
+        HandResult hand_result = 4;
+    }
+}

@@ -55,6 +55,7 @@ void Table::shuffle_deck() {
 }
 
 void Table::play_hand() {
+    std::cout << "Play Hand function.\n";
     // TODO  - allow stack sizes of 0 to buy back in 
             // handle players who are excluded bc they have a stack size of 0
     int num_players = players_at_table.size();
@@ -73,6 +74,7 @@ void Table::play_hand() {
 
     int winner = -1; // indicates which player won the hand, if decided by betting.
 
+    std::cout << "Hands dealt. Preflop betting.\n";
     // handle pre flop betting action then deal flop and reset player action
     if((winner = handle_betting_action(true, excluded_players, current_player_action, pot_size, deck_idx)) > -1) {
         award_chips_to_winner(winner, pot_size);
@@ -80,6 +82,7 @@ void Table::play_hand() {
     }
     deal_flop(deck_idx, community_cards);
 
+    std::cout << "Flop dealt. Pre turn betting.\n";
     // handle post flop betting action then deal turn
     if((winner = handle_betting_action(false, excluded_players, current_player_action, pot_size, deck_idx)) > -1) {
         award_chips_to_winner(winner, pot_size);
@@ -87,6 +90,7 @@ void Table::play_hand() {
     }
     deal_turn_or_river(deck_idx, community_cards);
 
+    std::cout << "Turn dealt. Pre river betting.\n";
     // handle post turn betting action then deal river
     if((winner = handle_betting_action(false, excluded_players, current_player_action, pot_size, deck_idx)) > -1) {
         award_chips_to_winner(winner, pot_size);
@@ -94,6 +98,7 @@ void Table::play_hand() {
     }
     deal_turn_or_river(deck_idx, community_cards);
 
+    std::cout << "River dealt. Final betting.\n";
     // handle post river action
     if((winner = handle_betting_action(false, excluded_players, current_player_action, pot_size, deck_idx)) > -1) {
         award_chips_to_winner(winner, pot_size);
@@ -101,6 +106,7 @@ void Table::play_hand() {
     }
 
     // decide winner (contains multiple if a draw)
+    std::cout << "Deciding winner.\n";
     std::vector<int> remaining_players = get_remaining_players(excluded_players);
     std::vector<int> winners = decide_winners(remaining_players, community_cards);
 
@@ -535,6 +541,10 @@ void Table::fill_n_highest_cards(const std::vector<Card>& combined_cards, HandTi
     for(int i=0; i<n; ++i) {
         hand_info.indifferent_cards.push_back(combined_cards[i]);
     }
+}
+
+void Table::send_player_stack_update() {
+    return;
 }
 
 void Table::initialize_excluded_players(std::unordered_set<int>& excluded_players) {

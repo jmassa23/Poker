@@ -68,6 +68,9 @@ private:
     void get_additional_five_card_hand_data(const std::vector<Card>& combined_cards, HandTieBreakInfo& hand_info);
     void fill_n_highest_cards(const std::vector<Card>& combined_cards, HandTieBreakInfo& hand_info, int n);
 
+    // sending updates to client helpers
+    void send_player_stack_update();
+
     // reset
     // print_decision
 
