@@ -34,6 +34,9 @@ void PokerClient::retrieve_server_messages(int socket) {
             case GamePacket::kHandResult:
                 handle_hand_result_update(game_packet.hand_result());
                 break;
+            case GamePacket::kWaitingForAction:
+                handle_waiting_for_action_message(game_packet.waiting_for_action());
+                break;
             case GamePacket::PAYLOAD_NOT_SET:
                 std::cerr << "Received GamePacket with no payload!" << std::endl;
                 break;
@@ -94,6 +97,27 @@ void PokerClient::print_hand(const HoleCards& hand) const {
     print_card(hand.second());
 }
 
+void PokerClient::print_player_action_update(const PlayerActionUpdate& player_action_update) const {
+    const PlayerDecision& player_decision = player_action_update.player_decision();
+
+    std::cout << player_action_update.player_name();
+
+    if(player_decision.player_action() == PlayerAction::CHECK_CALL) {
+        if(player_decision.bet_size() == 0) {
+            std::cout << " checked.\n";
+        }
+        else {
+            std::cout << " called a bet of " << std::to_string(player_decision.bet_size()) << std::endl;
+        }
+    }
+    else if(player_decision.player_action() == PlayerAction::RAISE) {
+        std::cout << " raised to " << std::to_string(player_decision.bet_size()) << std::endl;
+    }
+    else {
+        std::cout << " folded." << std::endl;
+    }
+}
+
 void PokerClient::handle_player_stack_update(const PlayerStackUpdate& player_stack_update) {
     for(PlayerStack player : player_stack_update.players()) {
         std::cout << player.player_name() << "\n";
@@ -102,7 +126,17 @@ void PokerClient::handle_player_stack_update(const PlayerStackUpdate& player_sta
 }
 
 void PokerClient::handle_player_action_update(const PlayerActionUpdate& player_action_update) {
-    return;
+    print_player_action_update(player_action_update);
+
+    if (!player_action_update.has_action()) {
+        return;
+    }
+
+    int current_bet_size = player_action_update.player_decision().bet_size();
+
+    std::cout << "It is your turn to act." << std::endl; 
+    std::cout << "The current bet size is " << std::to_string(current_bet_size) << std::endl;
+
 }
 
 void PokerClient::handle_dealer_update(const DealerUpdate& dealer_update) {
@@ -156,4 +190,8 @@ void PokerClient::handle_hand_result_update(const HandResult& hand_result) {
         print_hand(hand_result.player_hands(winner));
         std::cout << "\nAwarded " << chips_won << " the pot" << std::endl;
     }
+}
+
+void PokerClient::handle_waiting_for_action_message(const WaitingForAction& waiting_for_action) {
+    std::cout << "Waiting for action from " << std::to_string(waiting_for_action.player_id()) << "..." << std::endl;
 }
