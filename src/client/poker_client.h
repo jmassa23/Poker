@@ -4,6 +4,8 @@
 
 #include "network_manager.h"
 
+using Hand = std::pair<Card,Card>;
+
 class PokerClient {
 public:
     PokerClient();
@@ -29,6 +31,7 @@ private:
     void retrieve_server_messages(int socket);
     void print_board(const DealerUpdate& dealer_update) const;
     void print_card(const Card& card) const;
+    void print_hand(const HoleCards& hand) const;
 
     void handle_player_stack_update(const PlayerStackUpdate& player_stack_update);
     void handle_player_action_update(const PlayerActionUpdate& player_action_update);

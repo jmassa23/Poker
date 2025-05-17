@@ -86,22 +86,47 @@ void PokerClient::print_card(const Card& card) const {
             std::cout << "ERROR: This text should never print." << std::endl;
             break;
     }
+    std::cout << " ";
+}
 
-    std::cout << std::endl;
+void PokerClient::print_hand(const HoleCards& hand) const {
+    print_card(hand.first());
+    print_card(hand.second());
+}
+
+void PokerClient::handle_player_stack_update(const PlayerStackUpdate& player_stack_update) {
+    for(PlayerStack player : player_stack_update.players()) {
+        std::cout << player.player_name() << "\n";
+        std::cout << "Stack Size: " + std::to_string(player.stack_size()) << " Big Blinds\n" << std::endl;
+    }
+}
+
+void PokerClient::handle_player_action_update(const PlayerActionUpdate& player_action_update) {
+    return;
 }
 
 void PokerClient::handle_dealer_update(const DealerUpdate& dealer_update) {
+    // TODO - optimization: reduce the number of states. can have just one state
+    // that defines a card being dealt. POST_FLOP, POST_TURN, and POST_RIVER 
+    // are very similar in functionality. 
     switch (dealer_update.game_state()) {
         case GameState::SET_UP:
             std::cout << "All players connected. Starting game." << std::endl;
             break;
         case GameState::PRE_FLOP:
+            std::cout << "Small blind and big blind taken. Waiting for player to make betting action..." << std::endl;
             break;
         case GameState::POST_FLOP:
+            print_board(dealer_update);
+            std::cout << "The flop has been dealt. Waiting for player to make betting action..." << std::endl; 
             break;
         case GameState::POST_TURN:
+            print_board(dealer_update);
+            std::cout << "The turn has been dealt. Waiting for player to make betting action..." << std::endl; 
             break;
         case GameState::POST_RIVER:
+            print_board(dealer_update);
+            std::cout << "The river has been dealt. Waiting for player to make betting action..." << std::endl; 
             break;
         case GameState::SHOWDOWN:
             break;
@@ -111,4 +136,24 @@ void PokerClient::handle_dealer_update(const DealerUpdate& dealer_update) {
         default:
             std::cerr << "Received packet with invalid game state!" << std::endl;
             break;
+    }
+}
+
+void PokerClient::handle_hand_result_update(const HandResult& hand_result) {
+    std::cout << "Total pot size: " << std::to_string(hand_result.pot_size()) << std::endl;
+    if (hand_result.game_state() != GameState::SHOWDOWN) {
+        std::cout << "Player " << hand_result.winners(0) << " won the hand." << std::endl;
+        std::cout << "Awarded the whole pot" << std::endl;
+        return;
+    }
+
+    int num_winners = hand_result.winners().size();
+    std::string status = (num_winners == 1) ? " won " : " chopped ";
+    std::string chips_won = (num_winners == 1) ? "the whole" : "1/" + std::to_string(num_winners);
+    for (int winner = 0; winner < num_winners; ++winner) {
+        std::cout << "Player " << std::to_string(hand_result.winners(winner)) << status << " the pot.\n";
+        std::cout << "With the hand: ";
+        print_hand(hand_result.player_hands(winner));
+        std::cout << "\nAwarded " << chips_won << " the pot" << std::endl;
+    }
 }

@@ -81,6 +81,7 @@ message HandResult {
     repeated HoleCards player_hands = 2;
     HandRank hand_rank = 3;
     int32 pot_size = 4;
+    GameState game_state = 5;
 }
 
 // Message for GamePacket (sent by the server to the client)
