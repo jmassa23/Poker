@@ -41,7 +41,7 @@ private:
     
     // helpers for each key point in a hand
     int handle_betting_action(bool is_pre_flop, std::unordered_set<int>& excluded_players, int& current_player_action, int& pot_size, int& deck_idx);
-    std::vector<int> decide_winners(const std::vector<int>& remaining_players, const std::vector<Card>& community_cards);
+    std::pair<HandRank, std::vector<int>> decide_winners(const std::vector<int>& remaining_players, const std::vector<Card>& community_cards);
     void award_chips_to_winner(int winner, int amount);
     void award_chips_to_winners(const std::vector<int>& winners, int amount);
 

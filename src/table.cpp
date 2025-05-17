@@ -79,6 +79,7 @@ void Table::play_hand() {
     // handle pre flop betting action then deal flop and reset player action
     if((winner = handle_betting_action(true, excluded_players, current_player_action, pot_size, deck_idx)) > -1) {
         award_chips_to_winner(winner, pot_size);
+        send_hand_result(winner, pot_size);
         return;
     }
     deal_flop(deck_idx, community_cards);
@@ -89,6 +90,7 @@ void Table::play_hand() {
     // handle post flop betting action then deal turn
     if((winner = handle_betting_action(false, excluded_players, current_player_action, pot_size, deck_idx)) > -1) {
         award_chips_to_winner(winner, pot_size);
+        send_hand_result(winner, pot_size);
         return;
     }
     deal_turn_or_river(deck_idx, community_cards);
@@ -99,6 +101,7 @@ void Table::play_hand() {
     // handle post turn betting action then deal river
     if((winner = handle_betting_action(false, excluded_players, current_player_action, pot_size, deck_idx)) > -1) {
         award_chips_to_winner(winner, pot_size);
+        send_hand_result(winner, pot_size);
         return;
     }
     deal_turn_or_river(deck_idx, community_cards);
@@ -109,16 +112,18 @@ void Table::play_hand() {
     // handle post river action
     if((winner = handle_betting_action(false, excluded_players, current_player_action, pot_size, deck_idx)) > -1) {
         award_chips_to_winner(winner, pot_size);
+        send_hand_result(winner, pot_size);
         return;
     }
 
     // decide winner (contains multiple if a draw)
     std::cout << "Deciding winner.\n";
     std::vector<int> remaining_players = get_remaining_players(excluded_players);
-    std::vector<int> winners = decide_winners(remaining_players, community_cards);
+    auto [winning_hand_rank, winners] = decide_winners(remaining_players, community_cards);
 
     // award winner chips
     award_chips_to_winners(winners, pot_size);
+    send_hand_result(winners, pot_size, winning_hand_rank);
 }
 
 void Table::deal_hands(int& deck_idx) {
@@ -170,7 +175,7 @@ int Table::handle_betting_action(bool is_pre_flop, std::unordered_set<int>& excl
     return -1;
 }
 
-std::vector<int> Table::decide_winners(const std::vector<int>& remaining_players, const std::vector<Card>& community_cards) {
+std::pair<HandRank, std::vector<int>> Table::decide_winners(const std::vector<int>& remaining_players, const std::vector<Card>& community_cards) {
     int num_players = remaining_players.size();
     std::unordered_map<int, HandTieBreakInfo> hand_strengths(num_players);
     HandRank max_rank = HandRank::HIGH_CARD;
@@ -194,7 +199,7 @@ std::vector<int> Table::decide_winners(const std::vector<int>& remaining_players
 
     std::vector<int> winners = break_hand_rank_tie(eligible_to_win, hand_strengths);
 
-    return winners;
+    return {max_rank, winners};
 }
     
 void Table::award_chips_to_winner(int winner, int amount) {
@@ -585,26 +590,37 @@ void Table::send_dealer_update(GameState game_state, const std::vector<Card>& co
     broadcast_to_players(game_packet);
 }
 
-
 void Table::send_hand_result(int winner, int pot_size) {
     GamePacket game_packet;
     HandResult* hand_result = game_packet.mutable_hand_result();
     hand_result->add_winners(winner);
     hand_result->set_pot_size(pot_size);
+    // game state just has to NOT be SHOWDOWN
+    hand_result->set_game_state(GameState::PRE_FLOP);
 
     broadcast_to_players(game_packet);
 }
 
-
 void Table::send_hand_result(const std::vector<int> winners, int pot_size, HandRank hand_rank) {
     GamePacket game_packet;
     HandResult* hand_result = game_packet.mutable_hand_result();
-
     for(int winner : winners) {
         hand_result->add_winners(winner);
+
+        HoleCards* hole_cards = hand_result->add_player_hands();
+        // get players cards and set them to new card in hand_result object
+        auto [first_card_cpp, second_card_cpp] = players_at_table[winner]->get_hand();
+
+        Card* first_proto = hole_cards->mutable_first();
+        first_proto->set_rank(first_card_cpp.rank());
+        first_proto->set_suit(first_card_cpp.suit());
+        Card* second_proto = hole_cards->mutable_second();
+        second_proto->set_rank(second_card_cpp.rank());
+        second_proto->set_suit(second_card_cpp.suit());
     }
     hand_result->set_pot_size(pot_size);
     hand_result->set_hand_rank(hand_rank);
+    hand_result->set_game_state(GameState::SHOWDOWN);
 
     broadcast_to_players(game_packet);
 }
