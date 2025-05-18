@@ -19,9 +19,10 @@ public:
     Player(string _player_name, int _player_id, int _buy_in);
 
     // getters 
-    Hand get_hand();
-    int get_stack_size();
-    string get_player_name();
+    Hand get_hand() const;
+    int get_stack_size() const;
+    string get_player_name() const;
+    int get_player_id() const;
 
     // modifiers by table on player
     void take_big_blind();

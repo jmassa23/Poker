@@ -4,16 +4,20 @@ Player::Player(string _player_name, int _player_id, int _buy_in) :
             player_name(_player_name), player_id(_player_id), total_buy_in(_buy_in)
             , stack_size(_buy_in) {}
 
-Hand Player::get_hand() {
+Hand Player::get_hand() const {
     return current_hand;
 }
 
-int Player::get_stack_size() {
+int Player::get_stack_size() const {
     return stack_size;
 }
 
-string Player::get_player_name() {
+string Player::get_player_name() const {
     return player_name;
+}
+
+int Player::get_player_id() const {
+    return player_id;
 }
 
 void Player::take_big_blind() {

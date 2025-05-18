@@ -26,6 +26,7 @@ public:
 
     // action print functions
 private:
+    int player_id;
     NetworkManager network;
 
     void retrieve_server_messages(int socket);
@@ -34,9 +35,13 @@ private:
     void print_hand(const HoleCards& hand) const;
     void print_player_action_update(const PlayerActionUpdate& player_action_update) const;
 
+    PlayerDecision retrieve_action_from_player(const PlayerActionUpdate& player_action_update) const;
+    int get_raise_amount(int current_bet_size) const;
+
     void handle_player_stack_update(const PlayerStackUpdate& player_stack_update);
-    void handle_player_action_update(const PlayerActionUpdate& player_action_update);
+    void handle_player_action_update(int socket, const PlayerActionUpdate& player_action_update);
     void handle_dealer_update(const DealerUpdate& dealer_update);
     void handle_hand_result_update(const HandResult& hand_result);
     void handle_waiting_for_action_message(const WaitingForAction& waiting_for_action);
+    void handle_game_start_message(const GameStartMessage& game_start_message);
 };

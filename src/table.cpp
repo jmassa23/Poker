@@ -179,7 +179,7 @@ int Table::handle_betting_action(bool is_pre_flop, std::unordered_set<int>& excl
     int players_in_pot = players_at_table.size() - excluded_players.size();
 
     // set up message to the first to act. collect response and go from there
-    
+
 
 
 
@@ -669,6 +669,16 @@ std::vector<int> Table::get_remaining_players(const std::unordered_set<int> excl
 void Table::update_dealer() {
     int n = players_at_table.size();
     current_dealer = (current_dealer + 1) % n;
+}
+
+void Table::send_game_start_message() const {
+    GamePacket game_packet;
+    GameStartMessage* game_start_message = game_packet.mutable_game_start_message();
+    
+    for(int player_socket : player_sockets) {
+        game_start_message->set_player_id(socket_to_player.at(player_socket)->get_player_id());
+        NetworkManager::send_to_client(player_socket, game_packet);
+    }
 }
 
 void Table::broadcast_to_players(const GamePacket& game_packet) const {

@@ -1,6 +1,6 @@
 #include "poker_client.h"
 
-PokerClient::PokerClient() : network() {}
+PokerClient::PokerClient() : network(), player_id(0) {}
 
 PokerClient::~PokerClient() {}
 
@@ -26,7 +26,7 @@ void PokerClient::retrieve_server_messages(int socket) {
                 handle_player_stack_update(game_packet.stack_update());
                 break;
             case GamePacket::kActionUpdate:
-                handle_player_action_update(game_packet.action_update());
+                handle_player_action_update(socket, game_packet.action_update());
                 break;
             case GamePacket::kDealerUpdate:
                 handle_dealer_update(game_packet.dealer_update());
@@ -36,6 +36,9 @@ void PokerClient::retrieve_server_messages(int socket) {
                 break;
             case GamePacket::kWaitingForAction:
                 handle_waiting_for_action_message(game_packet.waiting_for_action());
+                break;
+            case GamePacket::kGameStartMessage:
+                handle_game_start_message(game_packet.game_start_message());
                 break;
             case GamePacket::PAYLOAD_NOT_SET:
                 std::cerr << "Received GamePacket with no payload!" << std::endl;
@@ -118,6 +121,79 @@ void PokerClient::print_player_action_update(const PlayerActionUpdate& player_ac
     }
 }
 
+PlayerDecision PokerClient::retrieve_action_from_player(const PlayerActionUpdate& player_action_update) const {
+    // get betting action from the player
+    int current_bet_size = player_action_update.player_decision().bet_size();
+    std::string option_one = (current_bet_size == 0) ? "Check" : "Call";
+
+    std::cout << "It is your turn to act." << std::endl; 
+    std::cout << "The current bet size is " << std::to_string(current_bet_size) << std::endl;
+
+    std::cout << "Your betting options are: \n";
+    std::cout << "(1) " << option_one << "\n";
+    std::cout << "(2) Raise\n";
+    std::cout << "(3) Fold\n";
+
+    PlayerAction betting_action;
+    while(true) {
+        std::cout << "\n Enter a number to indicate your decision: ";
+
+        int action;
+        std::cin >> action;
+
+        if (std::cin.fail()) {
+            std::cin.clear();  // Clear error flag
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');  // Discard invalid input
+            std::cout << "Invalid input. Please enter a valid integer.\n";
+            continue;
+        }
+
+        if(action != 1 && action != 2 && action != 3){
+            std::cout << "Error: that is not an action option. Please enter a number representing a valid option." << std::endl;
+            continue;
+        }
+
+        betting_action = static_cast<PlayerAction>(action-1);
+        break;
+    }
+    
+    // if raise, we need to know how much the player wants to raise
+    int player_bet = (betting_action == PlayerAction::RAISE) ? current_bet_size : get_raise_amount(current_bet_size);
+
+    PlayerDecision player_decision;
+    player_decision.set_player_id(player_id);
+    player_decision.set_player_action(betting_action);
+    player_decision.set_bet_size(player_bet);
+
+    return player_decision;
+}
+
+int PokerClient::get_raise_amount(int current_bet_size) const {
+    int raise_amount = 0;
+    while(true) {
+        std::cout << "Note: if you raise more than is in your current stack you will be put all in." << std::endl;
+        std::cout << "Enter the amount you want to raise to: ";
+
+        std::cin >> raise_amount;
+
+        if (std::cin.fail()) {
+            std::cin.clear();  // Clear error flag
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');  // Discard invalid input
+            std::cout << "Invalid input. Please enter a valid integer.\n";
+            continue;
+        }
+
+        if (raise_amount < current_bet_size * 2) {
+            std::cout << "Invalid input. You must double the previous bet at minimum." << std::endl;
+            continue;
+        }
+
+        break;
+    }
+
+    return raise_amount;
+}
+
 void PokerClient::handle_player_stack_update(const PlayerStackUpdate& player_stack_update) {
     for(PlayerStack player : player_stack_update.players()) {
         std::cout << player.player_name() << "\n";
@@ -125,18 +201,16 @@ void PokerClient::handle_player_stack_update(const PlayerStackUpdate& player_sta
     }
 }
 
-void PokerClient::handle_player_action_update(const PlayerActionUpdate& player_action_update) {
+void PokerClient::handle_player_action_update(int socket, const PlayerActionUpdate& player_action_update) {
     print_player_action_update(player_action_update);
 
     if (!player_action_update.has_action()) {
         return;
     }
 
-    int current_bet_size = player_action_update.player_decision().bet_size();
-
-    std::cout << "It is your turn to act." << std::endl; 
-    std::cout << "The current bet size is " << std::to_string(current_bet_size) << std::endl;
-
+    // get player's action and send to server
+    PlayerDecision player_decision = retrieve_action_from_player(player_action_update);
+    network.send_to_server(socket, player_decision);
 }
 
 void PokerClient::handle_dealer_update(const DealerUpdate& dealer_update) {
@@ -194,4 +268,10 @@ void PokerClient::handle_hand_result_update(const HandResult& hand_result) {
 
 void PokerClient::handle_waiting_for_action_message(const WaitingForAction& waiting_for_action) {
     std::cout << "Waiting for action from " << std::to_string(waiting_for_action.player_id()) << "..." << std::endl;
+}
+
+void PokerClient::handle_game_start_message(const GameStartMessage& game_start_message) {
+    player_id = game_start_message.player_id();
+
+    std::cout << "All players connected. The game has started.\n";
 }

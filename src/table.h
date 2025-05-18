@@ -91,5 +91,6 @@ public:
     void update_dealer();
     void play_hand();
 
+    void send_game_start_message() const;
     void broadcast_to_players(const GamePacket& game_packet) const;
 };

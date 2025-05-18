@@ -87,6 +87,10 @@ message WaitingForAction {
     int32 player_id = 1;
 }
 
+message GameStartMessage {
+    int32 player_id = 1;
+}
+
 // Message for GamePacket (sent by the server to the client)
 message GamePacket {
     oneof payload {
@@ -95,5 +99,6 @@ message GamePacket {
         DealerUpdate dealer_update = 3;
         HandResult hand_result = 4;
         WaitingForAction waiting_for_action = 5;
+        GameStartMessage game_start_message = 6;
     }
 }
