@@ -172,6 +172,21 @@ void Table::take_blinds(int& player_idx, std::unordered_set<int>& excluded_playe
 // returns a nonnegative number when the winner has already been decided by betting
 // returns -1 otherwise
 int Table::handle_betting_action(bool is_pre_flop, std::unordered_set<int>& excluded_players, int& current_player_action, int& pot_size, int& deck_idx) {
+    // TODO - solidify what stack sizes represent. is 1 BB = 1 stack size or 2 ? 2 for now
+
+    // if we are preflop then need to match blinds, otherwise start at 0
+    int current_bet_size = (is_pre_flop) ? 2 : 0;
+    int players_in_pot = players_at_table.size() - excluded_players.size();
+
+    // set up message to the first to act. collect response and go from there
+    
+
+
+
+
+    // when the previous player folds, want to send the bet size that the folded to
+    // in order to inform the next player with action the bet size
+
     return -1;
 }
 
