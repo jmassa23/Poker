@@ -174,18 +174,43 @@ void Table::take_blinds(int& player_idx, std::unordered_set<int>& excluded_playe
 int Table::handle_betting_action(bool is_pre_flop, std::unordered_set<int>& excluded_players, int& current_player_action, int& pot_size, int& deck_idx) {
     // TODO - solidify what stack sizes represent. is 1 BB = 1 stack size or 2 ? 2 for now
 
+    // TODO (?) - forward player id/name when a player folds so we know who made the last action
+
+    // TODO - handle side pots
+
+    // TODO - message about previous bet is made before every player's decision. don't want to print when player is first to act
+
     // if we are preflop then need to match blinds, otherwise start at 0
     int current_bet_size = (is_pre_flop) ? 2 : 0;
     int players_in_pot = players_at_table.size() - excluded_players.size();
 
-    // set up message to the first to act. collect response and go from there
+    GamePacket game_packet;
+    PlayerDecision player_decision;
+    
+    // repeatedly build message for client, send it to all players so they know what previous action was
+    // send waiting for action message
+    // receive message from client and update hand data accordingly
+    PlayerAction previous_action = PlayerAction::CHECK_CALL;
+    int bets_called = 0;
+    while(players_in_pot > 1 && players_in_pot != bets_called) {
+        // send request for action to next player
+        build_request_for_action_packet(game_packet, current_player_action, previous_action, pot_size, current_bet_size);
+        send_player_action_update(game_packet, current_player_action);
+        
+        // Get action from player
+        send_waiting_for_action(current_player_action);
+        NetworkManager::receive_from_client(player_sockets[current_player_action], player_decision);
 
+        // based on action, update game state values 
+        handle_player_action(player_decision, current_player_action, previous_action, current_bet_size, pot_size, bets_called, players_in_pot, excluded_players);
 
+        update_player_idx(current_player_action, excluded_players);
+    }
 
-
-
-    // when the previous player folds, want to send the bet size that the folded to
-    // in order to inform the next player with action the bet size
+    // if winner was decided by betting
+    if(players_in_pot == 1){
+        return find_winner_by_betting(excluded_players);
+    }
 
     return -1;
 }
@@ -589,6 +614,24 @@ void Table::send_player_stack_update(const std::unordered_set<int>& excluded_pla
     broadcast_to_players(game_packet);
 }
 
+void Table::send_player_action_update(GamePacket& game_packet, int player_with_action) {
+    // send message to player with action
+    NetworkManager::send_to_client(player_sockets[player_with_action], game_packet);
+
+    // set has action to false and send to all other players
+    PlayerActionUpdate* player_action = game_packet.mutable_action_update();
+    player_action->set_has_action(false);
+
+    int num_players = players_at_table.size();
+    for(int player_idx = 0; player_idx < num_players; ++num_players) {
+        if(player_idx == player_with_action) {
+            continue;
+        }
+
+        NetworkManager::send_to_client(player_sockets[player_with_action], game_packet);
+    }
+}
+
 void Table::send_dealer_update(GameState game_state, const std::vector<Card>& community_cards) {
     // TODO - optimization: maintain a pointer to dealer_update with community cards set 
     // so we don't have to repeatedly add all the community cards to the game packet
@@ -640,6 +683,46 @@ void Table::send_hand_result(const std::vector<int> winners, int pot_size, HandR
     broadcast_to_players(game_packet);
 }
 
+void Table::send_waiting_for_action(int player_id) const {
+    GamePacket game_packet;
+    WaitingForAction* waiting_for_action = game_packet.mutable_waiting_for_action();
+    waiting_for_action->set_player_id(player_id);
+    broadcast_to_players(game_packet);
+}
+
+void Table::build_request_for_action_packet(GamePacket& game_packet, int player_idx, const PlayerAction& action, int pot_size, int bet_size) {
+    PlayerActionUpdate* player_action = game_packet.mutable_action_update();
+    PlayerDecision* player_decision = player_action->mutable_player_decision();
+    player_decision->set_player_id(players_at_table[player_idx]->get_player_id());
+    player_decision->set_player_action(action);
+    player_decision->set_bet_size(bet_size);
+    player_action->set_player_name(players_at_table[player_idx]->get_player_name());
+    player_action->set_pot_size(pot_size);
+    player_action->set_has_action(true);
+}
+
+void Table::handle_player_action(const PlayerDecision& player_decision, int player_idx, PlayerAction& action, int& bet_size, int& pot_size, int& bets_called, int& players_in_pot, std::unordered_set<int>& excluded_players) {
+    // store player's action. If fold, then don't need to do anything else
+    action = player_decision.player_action();
+    
+    if(action == PlayerAction::CHECK_CALL){
+        bets_called++;
+    }
+    else if(action == PlayerAction::RAISE) {
+        bet_size = player_decision.bet_size();
+        bets_called = 1;
+    }
+    else if(action == PlayerAction::FOLD){
+        excluded_players.insert(player_idx);
+        players_in_pot--;
+        return;
+    }
+    
+    // if raise or check/call, take chips from player stack and increase pot size
+    pot_size += bet_size;
+    players_at_table[player_idx]->bet_chips(bet_size);
+}
+
 void Table::initialize_excluded_players(std::unordered_set<int>& excluded_players) {
     for(int player_idx = 0; player_idx < players_at_table.size(); ++player_idx) {
         if(players_at_table[player_idx]->get_stack_size() == 0) {
@@ -664,6 +747,22 @@ std::vector<int> Table::get_remaining_players(const std::unordered_set<int> excl
     }
 
     return result;
+}
+
+int Table::find_winner_by_betting(std::unordered_set<int>& excluded_players) {
+    int num_players = players_at_table.size();
+
+    int winner = -1;
+    int count = 0; // error checking
+    for(int player_idx = 0; player_idx < num_players; ++player_idx) {
+        if(!excluded_players.contains(num_players)){
+            winner = player_idx;
+            count++;
+        }
+    }
+
+    assert(count == 1);
+    return winner;
 }
 
 void Table::update_dealer() {

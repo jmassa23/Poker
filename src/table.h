@@ -70,18 +70,21 @@ private:
 
     // sending updates to client helpers
     void send_player_stack_update(const std::unordered_set<int>& excluded_players);
-    void send_player_action_update();
+    void send_player_action_update(GamePacket& game_packet, int player_with_action);
     void send_dealer_update(GameState game_state, const std::vector<Card>& community_cards);
     void send_hand_result(int winner, int pot_size);
     void send_hand_result(const std::vector<int> winners, int pot_size, HandRank hand_rank);
-    // reset
-    // print_decision
+    void send_waiting_for_action(int player_id) const;
 
+    void build_request_for_action_packet(GamePacket& game_packet, int player_idx, const PlayerAction& action, int pot_size, int bet_size);
+    void handle_player_action(const PlayerDecision& player_decision, int player_idx, PlayerAction& action, int& bet_size, int& pot_size, int& bets_called, int& players_in_pot, std::unordered_set<int>& excluded_players);
+    
     // other helpers
     void initialize_excluded_players(std::unordered_set<int>& excluded_players);
     void update_player_idx(int& player_idx, std::unordered_set<int>& excluded_players);
     void take_blinds(int& player_idx, std::unordered_set<int>& excluded_players);
     std::vector<int> get_remaining_players(const std::unordered_set<int> excluded_players);
+    int find_winner_by_betting(std::unordered_set<int>& excluded_players);
 
 public:
     Table(const std::vector<int>& players);

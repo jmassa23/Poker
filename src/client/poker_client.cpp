@@ -171,7 +171,7 @@ PlayerDecision PokerClient::retrieve_action_from_player(const PlayerActionUpdate
 int PokerClient::get_raise_amount(int current_bet_size) const {
     int raise_amount = 0;
     while(true) {
-        std::cout << "Note: if you raise more than is in your current stack you will be put all in." << std::endl;
+        std::cout << "Note: if you raise more than you have in your current stack you will be put all in." << std::endl;
         std::cout << "Enter the amount you want to raise to: ";
 
         std::cin >> raise_amount;
